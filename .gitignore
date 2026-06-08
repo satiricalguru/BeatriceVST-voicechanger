@@ -34,3 +34,6 @@ venv/
 .idea/
 *.swp
 *.swo
+
+# Soundboard uploaded audio
+soundboard_audio/

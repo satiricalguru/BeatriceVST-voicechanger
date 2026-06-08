@@ -1,8 +1,10 @@
 'use strict';
 
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, nativeImage } = require('electron');
 const { spawn }              = require('child_process');
 const path                   = require('path');
+
+const ICON_PATH = path.join(__dirname, 'icon.png');
 
 let mainWindow    = null;
 let pythonProcess = null;
@@ -13,6 +15,7 @@ function createWindow() {
     height:   800,
     minWidth: 860,
     minHeight: 620,
+    icon: ICON_PATH,
     title: 'Project Beatrice – AI Voice Changer',
     // macOS: hide the default titlebar, show traffic lights at correct coords
     titleBarStyle: 'hiddenInset',
@@ -32,6 +35,7 @@ function createWindow() {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
+    mainWindow.maximize();
   });
 
   mainWindow.on('closed', () => {
@@ -63,6 +67,10 @@ function startBackend() {
 // ── App lifecycle ─────────────────────────────────────────────────────────────
 
 app.whenReady().then(() => {
+  if (process.platform === 'darwin') {
+    const icon = nativeImage.createFromPath(ICON_PATH);
+    app.dock.setIcon(icon);
+  }
   startBackend();
   createWindow();
 

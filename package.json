@@ -1,8 +1,9 @@
 {
   "name": "beatrice-voice-changer",
-  "version": "2.0.0-rc.2",
+  "version": "1.0.0",
   "description": "Real-time AI voice changer powered by the Beatrice DSP engine and JVS corpus speakers",
   "main": "main.js",
+  "author": "Jatin Pandey <satiricalguru>",
   "homepage": "https://github.com/satiricalguru/beatrice-voicechanger",
   "repository": {
     "type": "git",
@@ -10,11 +11,94 @@
   },
   "scripts": {
     "start": "electron .",
-    "dev":   "electron . --enable-logging"
+    "dev": "electron . --enable-logging",
+    "dist": "electron-builder --mac --publish never"
   },
-  "keywords": ["voice-changer", "beatrice", "real-time", "DSP", "electron", "ai"],
+  "keywords": [
+    "voice-changer",
+    "beatrice",
+    "real-time",
+    "DSP",
+    "electron",
+    "ai"
+  ],
   "license": "MIT",
   "devDependencies": {
-    "electron": "^30.0.0"
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.satiricalguru.beatrice-voice-changer",
+    "productName": "Beatrice Voice Changer",
+    "copyright": "Copyright © 2026 Jatin Pandey",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "renderer.js",
+      "index.html",
+      "index.css",
+      "beatrice_audio.py",
+      "beatrice_loader.py",
+      "requirements.txt",
+      "icon.png",
+      "icon.icns",
+      "beatrice_paraphernalia_jvs/**/*",
+      "beatrice_2.0.0-rc.2.vst3/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "beatrice_paraphernalia_jvs",
+        "to": "beatrice_paraphernalia_jvs",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "beatrice_2.0.0-rc.2.vst3",
+        "to": "beatrice_2.0.0-rc.2.vst3",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.music",
+      "icon": "icon.icns",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "darkModeSupport": true,
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "title": "Beatrice Voice Changer",
+      "icon": "icon.icns",
+      "contents": [
+        {
+          "x": 150,
+          "y": 220,
+          "type": "file"
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "window": {
+        "width": 560,
+        "height": 400
+      }
+    }
   }
 }

@@ -3,15 +3,128 @@
 const fs   = require('fs');
 const path = require('path');
 
-// ── State ─────────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════
 let speakerProfiles    = [];
-let activeSpeakerIndex = 0;
-// Match Python backend startup state: bypass=false means DSP is ACTIVE
-let voiceChangerBypass = false;
+let activeSpeakerIndex = null;
+let voiceChangerBypass = true;
 let devicesLoaded      = false;
 let backendOnline      = false;
+const STORAGE_KEY_THEME = 'beatrice_theme';
+const STORAGE_KEY_MODE  = 'beatrice_color_mode';
+const STORAGE_KEY_SB    = 'beatrice_soundboard';
+const STORAGE_KEY_LANG  = 'beatrice_language';
 
-// ── DOM References ─────────────────────────────────────────────────────────────
+const SOUNDBOARD_DIR = path.join(__dirname, 'soundboard_audio');
+if (!fs.existsSync(SOUNDBOARD_DIR)) fs.mkdirSync(SOUNDBOARD_DIR, { recursive: true });
+
+// ════════════════════════════════════════════════════════════
+// I18N TRANSLATIONS
+// ════════════════════════════════════════════════════════════
+const I18N = {
+  en: {
+    tab_voices: 'Target Voices',
+    tab_soundboard: 'Soundboard',
+    tab_settings: 'Settings',
+    voices_title: 'Target Voices',
+    voices_desc: 'Select a JVS speaker to morph your voice. Each speaker maps to a unique chemical element.',
+    soundboard_title: 'Soundboard',
+    soundboard_desc: 'Upload audio files, assign custom images, and play sounds. Click to play; right-click to change image or name.',
+    settings_title: 'Settings',
+    settings_desc: 'Appearance and preferences. Mode controls brightness; theme controls the accent palette.',
+    settings_language: 'Language',
+    settings_language_desc: 'Choose the display language for the app interface.',
+    settings_color_mode: 'Color Mode',
+    settings_color_mode_desc: 'Pick a fixed mode or let Beatrice follow your system setting.',
+    settings_theme: 'Theme',
+    settings_theme_desc: 'Desktop palettes only. The selected mode is applied on top.',
+    settings_factory_reset: 'Factory Reset',
+    settings_reset_name: 'Reset All Settings',
+    settings_reset_desc: 'Reset theme, soundboard, and preferences to defaults.',
+    settings_reset_btn: 'Reset',
+    power_label: 'Voice Changer',
+    audio_routing: 'Audio Routing',
+    input_controls: 'Input Controls',
+    dsp_modifiers: 'DSP Modifiers',
+    output_controls: 'Output Controls',
+  },
+  ja: {
+    tab_voices: 'ボイス',
+    tab_soundboard: 'サウンドボード',
+    tab_settings: '設定',
+    voices_title: '対象ボイス',
+    voices_desc: 'JVSスピーカーを選択して声を変換します。各スピーカーは独自の化学元素に対応します。',
+    soundboard_title: 'サウンドボード',
+    soundboard_desc: 'オーディオファイルをアップロードし、カスタム画像を割り当ててサウンドを再生。クリックで再生、右クリックで画像や名前を変更。',
+    settings_title: '設定',
+    settings_desc: '外観とプリファレンス。モードは明るさを、テーマはアクセントパレットを制御します。',
+    settings_language: '言語',
+    settings_language_desc: 'アプリインターフェースの表示言語を選択します。',
+    settings_color_mode: 'カラーモード',
+    settings_color_mode_desc: '固定モードを選択するか、システム設定に合わせます。',
+    settings_theme: 'テーマ',
+    settings_theme_desc: 'デスクトップ限定パレット。選択したモードが上書きされます。',
+    settings_factory_reset: '工場出荷時設定に戻す',
+    settings_reset_name: 'すべての設定をリセット',
+    settings_reset_desc: 'テーマ、サウンドボード、プリファレンスをデフォルトにリセットします。',
+    settings_reset_btn: 'リセット',
+    power_label: 'ボイスチェンジャー',
+    audio_routing: 'オーディオルーティング',
+    input_controls: '入力コントロール',
+    dsp_modifiers: 'DSPモディファイア',
+    output_controls: '出力コントロール',
+  },
+  zh: {
+    tab_voices: '语音',
+    tab_soundboard: '声板',
+    tab_settings: '设置',
+    voices_title: '目标语音',
+    voices_desc: '选择 JVS 说话人来转换您的声音。每个说话人对应一个独特的化学元素。',
+    soundboard_title: '声板',
+    soundboard_desc: '上传音频文件，分配自定义图片并播放声音。点击播放，右键更改图片或名称。',
+    settings_title: '设置',
+    settings_desc: '外观和偏好设置。模式控制亮度，主题控制强调色板。',
+    settings_language: '语言',
+    settings_language_desc: '选择应用程序界面的显示语言。',
+    settings_color_mode: '颜色模式',
+    settings_color_mode_desc: '选择固定模式或让 Beatrice 跟随系统设置。',
+    settings_theme: '主题',
+    settings_theme_desc: '仅限桌面调色板。所选模式将应用在其上。',
+    settings_factory_reset: '恢复出厂设置',
+    settings_reset_name: '重置所有设置',
+    settings_reset_desc: '将主题、声板和偏好设置重置为默认值。',
+    settings_reset_btn: '重置',
+    power_label: '变声器',
+    audio_routing: '音频路由',
+    input_controls: '输入控制',
+    dsp_modifiers: 'DSP 修改器',
+    output_controls: '输出控制',
+  },
+};
+
+function applyLanguage(lang) {
+  localStorage.setItem(STORAGE_KEY_LANG, lang);
+  const dict = I18N[lang] || I18N.en;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key]) el.textContent = dict[key];
+  });
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    const isActive = b.dataset.lang === lang;
+    b.classList.toggle('active', isActive);
+    b.setAttribute('aria-checked', String(isActive));
+  });
+}
+
+function loadSavedLanguage() {
+  const saved = localStorage.getItem(STORAGE_KEY_LANG) || 'en';
+  applyLanguage(saved);
+}
+
+// ════════════════════════════════════════════════════════════
+// DOM REFERENCES
+// ════════════════════════════════════════════════════════════
 const powerToggleBtn       = document.getElementById('power-toggle');
 const bypassStatusEl       = document.getElementById('bypass-status');
 const powerLabelEl         = document.getElementById('power-label');
@@ -47,8 +160,307 @@ const connLabel            = document.getElementById('conn-label');
 const streamDot            = document.getElementById('stream-dot');
 const streamStatusText     = document.getElementById('stream-status-text');
 
-// ── TOML Speaker Loader ───────────────────────────────────────────────────────
+// Settings
+const settingsResetBtn     = document.getElementById('settings-reset');
+const themeGrid            = document.getElementById('theme-grid');
 
+// ════════════════════════════════════════════════════════════
+// THEME SYSTEM
+// ════════════════════════════════════════════════════════════
+function applyTheme(themeName) {
+  document.documentElement.setAttribute('data-theme', themeName);
+  localStorage.setItem(STORAGE_KEY_THEME, themeName);
+  document.querySelectorAll('.theme-card').forEach(c => {
+    c.classList.toggle('active', c.dataset.theme === themeName);
+  });
+}
+
+function applyColorMode(mode) {
+  if (mode === 'system') {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-color-mode', prefersDark ? 'dark' : 'light');
+  } else {
+    document.documentElement.setAttribute('data-color-mode', mode);
+  }
+  localStorage.setItem(STORAGE_KEY_MODE, mode);
+  document.querySelectorAll('.color-mode-btn').forEach(b => {
+    const isActive = b.dataset.mode === mode;
+    b.classList.toggle('active', isActive);
+    b.setAttribute('aria-checked', String(isActive));
+  });
+}
+
+function loadSavedTheme() {
+  const savedTheme = localStorage.getItem(STORAGE_KEY_THEME) || 'obsidian';
+  const savedMode  = localStorage.getItem(STORAGE_KEY_MODE) || 'dark';
+  applyTheme(savedTheme);
+  applyColorMode(savedMode);
+}
+
+// Listen for system color scheme changes
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  const currentMode = localStorage.getItem(STORAGE_KEY_MODE) || 'dark';
+  if (currentMode === 'system') applyColorMode('system');
+});
+
+// ════════════════════════════════════════════════════════════
+// SOUNDBOARD
+// ════════════════════════════════════════════════════════════
+let soundboardSounds = [];
+let playingAudio  = null;   // currently playing Audio object (for stop)
+let playingIndex  = null;
+
+function loadSoundboard() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY_SB);
+    soundboardSounds = saved ? JSON.parse(saved) : [];
+  } catch {
+    soundboardSounds = [];
+  }
+  // Remove any entries with missing audio files
+  soundboardSounds = soundboardSounds.filter(s => s && s.audioPath && fs.existsSync(s.audioPath));
+}
+
+function saveSoundboard() {
+  localStorage.setItem(STORAGE_KEY_SB, JSON.stringify(soundboardSounds));
+}
+
+function renderSoundboardMain() {
+  const container = document.getElementById('soundboard-main-grid');
+  if (!container) return;
+  container.innerHTML = '';
+
+  soundboardSounds.forEach((sound, i) => {
+    const el = document.createElement('div');
+    el.className = 'sb-main-slot';
+    el.dataset.index = i;
+
+    const imageHtml = `<svg class="sb-default-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`;
+
+    el.innerHTML = `
+      <div class="sb-overlay-actions">
+        <button class="sb-overlay-btn sb-btn-rename" title="Rename">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+        </button>
+        <button class="sb-overlay-btn sb-btn-delete" title="Remove">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+        </button>
+      </div>
+      <div class="sb-slot-image">${imageHtml}</div>
+      <div class="sb-slot-info">
+        <span class="sb-slot-name">${sound.name}</span>
+      </div>
+      <div class="sb-play-indicator">
+        <button class="sb-play-btn${playingIndex === i ? ' is-playing' : ''}" data-index="${i}">
+          ${playingIndex === i
+            ? '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
+            : '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>'
+          }
+        </button>
+      </div>
+    `;
+
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('.sb-overlay-btn')) return;
+      const playBtn = e.target.closest('.sb-play-btn');
+      if (playBtn) {
+        const idx = parseInt(playBtn.dataset.index);
+        if (playingIndex === idx) {
+          stopSoundboardSlot();
+        } else {
+          playSoundboardSlot(idx);
+        }
+        return;
+      }
+      playSoundboardSlot(i);
+    });
+
+    el.querySelector('.sb-btn-rename').addEventListener('click', (e) => {
+      e.stopPropagation();
+      startRenameSlot(i, el);
+    });
+
+    el.querySelector('.sb-btn-delete').addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteSoundboardSound(i);
+    });
+
+    container.appendChild(el);
+  });
+}
+
+function addSoundboardSound(file) {
+  const ext = path.extname(file.name) || '.wav';
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const destPath = path.join(SOUNDBOARD_DIR, `${Date.now()}_${safeName}`);
+
+  try {
+    const data = new Uint8Array(fs.readFileSync(file.path));
+    fs.writeFileSync(destPath, Buffer.from(data));
+  } catch (err) {
+    console.error('[Beatrice] Failed to copy audio file:', err);
+    return;
+  }
+
+  soundboardSounds.push({
+    name: path.basename(file.name, ext),
+    audioPath: destPath,
+  });
+  saveSoundboard();
+  renderSoundboardMain();
+}
+
+function deleteSoundboardSound(index) {
+  const sound = soundboardSounds[index];
+  if (sound && sound.audioPath && fs.existsSync(sound.audioPath)) {
+    try { fs.unlinkSync(sound.audioPath); } catch {}
+  }
+  soundboardSounds.splice(index, 1);
+  saveSoundboard();
+  renderSoundboardMain();
+}
+
+function startRenameSlot(index, el) {
+  const sound = soundboardSounds[index];
+  if (!sound) return;
+  const nameEl = el.querySelector('.sb-slot-name');
+  if (!nameEl) return;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'sb-rename-input';
+  input.value = sound.name;
+  nameEl.replaceWith(input);
+  input.focus();
+  input.select();
+
+  const finish = () => {
+    const newName = input.value.trim() || sound.name;
+    sound.name = newName;
+    saveSoundboard();
+    renderSoundboardMain();
+  };
+  input.addEventListener('blur', finish);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') finish();
+    if (e.key === 'Escape') renderSoundboardMain();
+  });
+}
+
+function playSoundboardSlot(index) {
+  const sound = soundboardSounds[index];
+  if (!sound || !sound.audioPath) return;
+  if (!fs.existsSync(sound.audioPath)) {
+    soundboardSounds.splice(index, 1);
+    saveSoundboard();
+    renderSoundboardMain();
+    return;
+  }
+
+  playingIndex = index;
+  renderSoundboardMain();
+
+  const hearYourself = hearYourselfToggle.checked;
+  const qs = new URLSearchParams({
+    file_path: sound.audioPath,
+    hear_yourself: String(hearYourself),
+  }).toString();
+  fetch(`${BACKEND_URL}/play_sound?${qs}`).catch(() => {});
+}
+
+function stopSoundboardSlot() {
+  playingIndex = null;
+  playingAudio = null;
+  fetch(`${BACKEND_URL}/stop_sound`).catch(() => {});
+  renderSoundboardMain();
+}
+
+// Upload button
+const sbUploadBtn = document.getElementById('sb-upload-btn');
+if (sbUploadBtn) {
+  sbUploadBtn.addEventListener('click', () => {
+    document.getElementById('sb-audio-input').click();
+  });
+}
+
+// Audio file input handler
+const sbAudioInput = document.getElementById('sb-audio-input');
+if (sbAudioInput) {
+  sbAudioInput.addEventListener('change', () => {
+    const files = sbAudioInput.files;
+    if (!files.length) return;
+    for (const file of files) {
+      if (file.type.startsWith('audio/')) addSoundboardSound(file);
+    }
+    sbAudioInput.value = '';
+  });
+}
+
+// Drag-and-drop on the grid
+const sbGrid = document.getElementById('soundboard-main-grid');
+if (sbGrid) {
+  sbGrid.addEventListener('dragover', (e) => e.preventDefault());
+  sbGrid.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const files = e.dataTransfer.files;
+    for (const file of files) {
+      if (file.type.startsWith('audio/')) addSoundboardSound(file);
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// SETTINGS
+// ════════════════════════════════════════════════════════════
+// Theme card clicks
+themeGrid.addEventListener('click', (e) => {
+  const card = e.target.closest('.theme-card');
+  if (card) applyTheme(card.dataset.theme);
+});
+
+// Color mode clicks
+document.querySelectorAll('.color-mode-btn:not(.lang-btn)').forEach(btn => {
+  btn.addEventListener('click', () => applyColorMode(btn.dataset.mode));
+});
+
+// Language clicks
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => applyLanguage(btn.dataset.lang));
+});
+
+// Factory reset
+settingsResetBtn.addEventListener('click', () => {
+  localStorage.removeItem(STORAGE_KEY_THEME);
+  localStorage.removeItem(STORAGE_KEY_MODE);
+  localStorage.removeItem(STORAGE_KEY_SB);
+  localStorage.removeItem(STORAGE_KEY_LANG);
+  applyTheme('obsidian');
+  applyColorMode('dark');
+  applyLanguage('en');
+  loadSoundboard();
+  renderSoundboardMain();
+});
+
+// ════════════════════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════════════════════
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+    });
+    document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+    const target = document.getElementById(`tab-${btn.dataset.tab}`);
+    if (target) target.classList.add('active');
+  });
+});
+
+// ════════════════════════════════════════════════════════════
+// TOML SPEAKER LOADER
+// ════════════════════════════════════════════════════════════
 function loadSpeakerData() {
   try {
     const tomlPath = path.join(__dirname, 'beatrice_paraphernalia_jvs', 'beatrice_paraphernalia_jvs.toml');
@@ -81,7 +493,6 @@ function parseTOML(text) {
   for (const rawLine of text.split(/\r?\n/)) {
     const line = rawLine.trim();
 
-    // --- multi-line description accumulator ---
     if (inDesc) {
       if (line.endsWith('"""')) {
         descLines.push(line.slice(0, -3));
@@ -94,7 +505,6 @@ function parseTOML(text) {
       continue;
     }
 
-    // --- [voice.N] section header ---
     const voiceMatch = line.match(/^\[voice\.(\d+)\]$/);
     if (voiceMatch) {
       cur = { index: parseInt(voiceMatch[1], 10), name: '', description: '', average_pitch: 0 };
@@ -104,23 +514,19 @@ function parseTOML(text) {
 
     if (!cur) continue;
 
-    // --- name field ---
     if (line.startsWith('name =')) {
       cur.name = line.slice(line.indexOf('=') + 1).trim().replace(/^"|"$/g, '');
       continue;
     }
 
-    // --- average_pitch field ---
     if (line.startsWith('average_pitch =')) {
       const v = parseFloat(line.split('=')[1]);
       if (!isNaN(v)) cur.average_pitch = v;
       continue;
     }
 
-    // --- description = """ (multi-line string start) ---
     if (line.startsWith('description = """')) {
       const afterOpen = line.slice('description = """'.length);
-      // Single-line triple-quoted string
       if (afterOpen.endsWith('"""')) {
         cur.description = afterOpen.slice(0, -3).trim();
       } else {
@@ -134,23 +540,15 @@ function parseTOML(text) {
   return speakers;
 }
 
-// ── Render Speakers ───────────────────────────────────────────────────────────
-
-/**
- * Derive a short element tag from a speaker description.
- * Returns e.g. "Hydrogen (H)" or falls back to "JVS Voice".
- */
+// ════════════════════════════════════════════════════════════
+// RENDER SPEAKERS
+// ════════════════════════════════════════════════════════════
 function extractElement(description) {
   const m = description.match(/Element:\s*\r?\n\s*(.+)/i);
   return m ? m[1].trim() : 'JVS Voice';
 }
 
-/**
- * Generate a deterministic hue from the periodic-table element symbol for
- * colour variety across the 100 cards.
- */
 function elementHue(elementStr) {
-  // Extract abbreviation, e.g. "Hydrogen (H)" → "H"
   const sym = (elementStr.match(/\(([^)]+)\)/) || [])[1] || elementStr;
   let hash = 0;
   for (let i = 0; i < sym.length; i++) {
@@ -165,7 +563,7 @@ function renderSpeakers(profiles) {
   if (profiles.length === 0) {
     speakersGrid.innerHTML = `
       <div class="empty-state" role="status">
-        <div class="empty-state-icon" aria-hidden="true">🔍</div>
+        <div class="empty-state-icon" aria-hidden="true">&#x1F50D;</div>
         <p>No voices match your search.</p>
         <small>Try a different name or element.</small>
       </div>`;
@@ -179,34 +577,28 @@ function renderSpeakers(profiles) {
     const hue     = elementHue(elemStr);
     const jvsId   = `JVS-${String(speaker.index + 1).padStart(3, '0')}`;
     const isActive = speaker.index === activeSpeakerIndex;
-
-    // First line of description (before the Element: block)
     const firstLine = speaker.description.split('\n').find(l => l.trim() && !l.trim().startsWith('Element:')) || '';
 
     const card = document.createElement('div');
-    card.className = `card speaker-card${isActive ? ' active' : ''}`;
+    card.className = `speaker-card${isActive ? ' active' : ''}`;
     card.id        = `speaker-card-${speaker.index}`;
     card.setAttribute('role', 'option');
     card.setAttribute('aria-selected', String(isActive));
     card.setAttribute('tabindex', '0');
-    card.style.animationDelay = `${Math.min(i * 18, 600)}ms`;
+    card.style.animationDelay = `${Math.min(i * 16, 500)}ms`;
 
-    // Inline colour from element hue
     card.innerHTML = `
       <div class="speaker-elem-tag"
-           style="--elem-hue:${hue};background:hsl(${hue},70%,50%,0.14);color:hsl(${hue},85%,72%);border-color:hsl(${hue},70%,60%,0.22);"
+           style="background:hsl(${hue},60%,50%,0.14);color:hsl(${hue},80%,72%);border-color:hsl(${hue},60%,60%,0.22);"
            aria-hidden="true">${elemStr}</div>
       <div class="speaker-id">${jvsId}</div>
       <div class="speaker-name">${speaker.name}</div>
       <div class="speaker-desc">${firstLine.trim()}</div>
       <div class="speaker-pitch">
-        ♩&nbsp;<span class="speaker-pitch-val">${speaker.average_pitch.toFixed(1)} Hz</span>
+        <span class="speaker-pitch-val">${speaker.average_pitch.toFixed(1)} Hz</span>
       </div>`;
 
-    // Click
     card.addEventListener('click', () => selectSpeaker(speaker.index));
-
-    // Keyboard activation
     card.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
@@ -223,13 +615,14 @@ function renderSpeakers(profiles) {
 function showSpeakerError(msg) {
   speakersGrid.innerHTML = `
     <div class="empty-state" role="alert">
-      <div class="empty-state-icon" aria-hidden="true">⚠️</div>
+      <div class="empty-state-icon" aria-hidden="true">&#x26A0;&#xFE0F;</div>
       <p>${msg}</p>
     </div>`;
 }
 
-// ── Backend Communication ─────────────────────────────────────────────────────
-
+// ════════════════════════════════════════════════════════════
+// BACKEND COMMUNICATION
+// ════════════════════════════════════════════════════════════
 const BACKEND_URL = 'http://127.0.0.1:5005';
 
 async function setBackendConfig(params) {
@@ -237,13 +630,14 @@ async function setBackendConfig(params) {
     const qs = new URLSearchParams(params).toString();
     const res = await fetch(`${BACKEND_URL}/set_config?${qs}`);
     if (!res.ok) console.warn('[Beatrice] Backend returned', res.status);
-  } catch (err) {
-    // Silently ignore — status poll will surface disconnect
+  } catch {
+    // Silently ignore
   }
 }
 
-// ── Speaker Selection ─────────────────────────────────────────────────────────
-
+// ════════════════════════════════════════════════════════════
+// SPEAKER SELECTION
+// ════════════════════════════════════════════════════════════
 function selectSpeaker(index) {
   const prev = document.getElementById(`speaker-card-${activeSpeakerIndex}`);
   if (prev) {
@@ -257,15 +651,15 @@ function selectSpeaker(index) {
   if (next) {
     next.classList.add('active');
     next.setAttribute('aria-selected', 'true');
-    // Scroll into view smoothly if needed
     next.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
   setBackendConfig({ speaker_index: index });
 }
 
-// ── Power Toggle ──────────────────────────────────────────────────────────────
-
+// ════════════════════════════════════════════════════════════
+// POWER TOGGLE
+// ════════════════════════════════════════════════════════════
 powerToggleBtn.addEventListener('click', () => {
   voiceChangerBypass = !voiceChangerBypass;
   applyBypassUI(voiceChangerBypass);
@@ -274,13 +668,15 @@ powerToggleBtn.addEventListener('click', () => {
 
 function applyBypassUI(bypass) {
   if (bypass) {
-    powerToggleBtn.classList.add('active');        // red glow = bypassed
+    powerToggleBtn.classList.add('active');
+    powerToggleBtn.classList.remove('live');
     powerToggleBtn.setAttribute('aria-pressed', 'false');
     bypassStatusEl.className  = 'bypass-indicator active';
     bypassStatusEl.textContent = 'BYPASSED';
     powerLabelEl.textContent  = 'BYPASSED';
   } else {
-    powerToggleBtn.classList.remove('active');     // no glow = live processing
+    powerToggleBtn.classList.remove('active');
+    powerToggleBtn.classList.add('live');
     powerToggleBtn.setAttribute('aria-pressed', 'true');
     bypassStatusEl.className  = 'bypass-indicator live';
     bypassStatusEl.textContent = 'LIVE';
@@ -288,8 +684,9 @@ function applyBypassUI(bypass) {
   }
 }
 
-// ── Slider Bindings ───────────────────────────────────────────────────────────
-
+// ════════════════════════════════════════════════════════════
+// SLIDER BINDINGS
+// ════════════════════════════════════════════════════════════
 gateSlider.addEventListener('input', () => {
   const val = parseFloat(gateSlider.value);
   gateValSpan.textContent = val.toFixed(3);
@@ -319,8 +716,9 @@ volumeSlider.addEventListener('input', () => {
   setBackendConfig({ volume: val });
 });
 
-// ── Search ────────────────────────────────────────────────────────────────────
-
+// ════════════════════════════════════════════════════════════
+// SEARCH
+// ════════════════════════════════════════════════════════════
 let searchDebounce = null;
 
 searchBox.addEventListener('input', () => {
@@ -346,15 +744,12 @@ searchBox.addEventListener('input', () => {
 });
 
 function updateSearchCount(shown, total) {
-  if (shown === total) {
-    searchCount.textContent = `${total} voices`;
-  } else {
-    searchCount.textContent = `${shown} / ${total}`;
-  }
+  searchCount.textContent = shown === total ? `${total} voices` : `${shown} / ${total}`;
 }
 
-// ── Audio Device Loader ───────────────────────────────────────────────────────
-
+// ════════════════════════════════════════════════════════════
+// AUDIO DEVICE LOADER
+// ════════════════════════════════════════════════════════════
 async function loadAudioDevices() {
   try {
     const res     = await fetch(`${BACKEND_URL}/devices`);
@@ -390,7 +785,6 @@ async function loadAudioDevices() {
   }
 }
 
-// Lazy-load devices on first focus of any dropdown
 [inputDeviceSelect, outputDeviceSelect, monitorDeviceSelect].forEach(sel => {
   sel.addEventListener('focus', loadAudioDevices, { once: false });
 });
@@ -406,20 +800,16 @@ monitorDeviceSelect.addEventListener('change', () =>
 
 hearYourselfToggle.addEventListener('change', () => {
   const checked = hearYourselfToggle.checked;
-  monitorContainer.style.display = checked ? 'flex' : 'none';
-  monitorContainer.style.flexDirection = 'column';
+  monitorContainer.classList.toggle('hidden', !checked);
   monitorContainer.setAttribute('aria-hidden', String(!checked));
   setBackendConfig({ hear_yourself: checked });
 });
 
-// ── Backend Status Polling ────────────────────────────────────────────────────
-
-/**
- * Convert a linear 0-1 meter value to a dBFS string.
- * Returns "—" at silence.
- */
+// ════════════════════════════════════════════════════════════
+// BACKEND STATUS POLLING
+// ════════════════════════════════════════════════════════════
 function linearToDb(linear) {
-  if (linear <= 0.0001) return '—';
+  if (linear <= 0.0001) return '\u2014';
   const db = 20 * Math.log10(linear);
   return `${db.toFixed(0)} dB`;
 }
@@ -433,6 +823,8 @@ function setBackendStatus(online) {
     connLabel.textContent = 'Backend connected';
     streamDot.className  = 'status-dot live';
     streamStatusText.textContent = 'Audio Stream Active';
+    const badge = document.getElementById('backend-status-badge');
+    if (badge) badge.textContent = 'CONNECTED';
   } else {
     connDot.className = 'conn-dot error';
     connLabel.textContent = 'Backend offline';
@@ -440,8 +832,10 @@ function setBackendStatus(online) {
     streamStatusText.textContent = 'Backend Offline';
     inputMeterFill.style.width  = '0%';
     outputMeterFill.style.width = '0%';
-    inputDbVal.textContent  = '—';
-    outputDbVal.textContent = '—';
+    inputDbVal.textContent  = '\u2014';
+    outputDbVal.textContent = '\u2014';
+    const badge = document.getElementById('backend-status-badge');
+    if (badge) badge.textContent = 'OFFLINE';
   }
 }
 
@@ -452,7 +846,6 @@ async function pollBackendStatus() {
 
     setBackendStatus(true);
 
-    // One-time device sync on first successful poll
     if (!devicesLoaded) {
       await loadAudioDevices();
       if (status.input_device_id   != null) inputDeviceSelect.value  = String(status.input_device_id);
@@ -460,14 +853,12 @@ async function pollBackendStatus() {
       if (status.monitor_device_id != null) monitorDeviceSelect.value = String(status.monitor_device_id);
       if (typeof status.hear_yourself === 'boolean') {
         hearYourselfToggle.checked = status.hear_yourself;
-        monitorContainer.style.display = status.hear_yourself ? 'flex' : 'none';
-        monitorContainer.style.flexDirection = 'column';
+        monitorContainer.classList.toggle('hidden', !status.hear_yourself);
         monitorContainer.setAttribute('aria-hidden', String(!status.hear_yourself));
       }
       devicesLoaded = true;
     }
 
-    // VU meters — scale 0-1 linear → 0-100% bar width
     const inW  = Math.min(100, (status.input_meter  || 0) * 350);
     const outW = Math.min(100, (status.output_meter || 0) * 350);
 
@@ -477,7 +868,6 @@ async function pollBackendStatus() {
     inputDbVal.textContent  = linearToDb(status.input_meter  || 0);
     outputDbVal.textContent = linearToDb(status.output_meter || 0);
 
-    // Sync bypass state if changed externally
     if (typeof status.bypass === 'boolean' && status.bypass !== voiceChangerBypass) {
       voiceChangerBypass = status.bypass;
       applyBypassUI(voiceChangerBypass);
@@ -487,7 +877,13 @@ async function pollBackendStatus() {
   }
 }
 
-// ── Bootstrap ─────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+// BOOTSTRAP
+// ════════════════════════════════════════════════════════════
+loadSavedTheme();
+loadSavedLanguage();
+loadSoundboard();
+renderSoundboardMain();
 loadSpeakerData();
-applyBypassUI(voiceChangerBypass);   // initialise UI to correct state
-setInterval(pollBackendStatus, 100);
+applyBypassUI(voiceChangerBypass);
+setInterval(pollBackendStatus, 250);

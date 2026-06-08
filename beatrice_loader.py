@@ -21,7 +21,7 @@ class BeatriceModel:
         self.lib.Beatrice20rc0_ReadPhoneExtractorParameters.restype = ctypes.c_int
         self.lib.Beatrice20rc0_DestroyPhoneExtractor.argtypes = [ctypes.c_void_p]
         
-        self.lib.Beatrice20rc0_CreatePhoneContext1.argtypes = [ctypes.c_void_p]
+        self.lib.Beatrice20rc0_CreatePhoneContext1.argtypes = []
         self.lib.Beatrice20rc0_CreatePhoneContext1.restype = ctypes.c_void_p
         self.lib.Beatrice20rc0_DestroyPhoneContext1.argtypes = [ctypes.c_void_p]
         
@@ -31,7 +31,7 @@ class BeatriceModel:
         self.lib.Beatrice20rc0_ReadPitchEstimatorParameters.restype = ctypes.c_int
         self.lib.Beatrice20rc0_DestroyPitchEstimator.argtypes = [ctypes.c_void_p]
         
-        self.lib.Beatrice20rc0_CreatePitchContext1.argtypes = [ctypes.c_void_p]
+        self.lib.Beatrice20rc0_CreatePitchContext1.argtypes = []
         self.lib.Beatrice20rc0_CreatePitchContext1.restype = ctypes.c_void_p
         self.lib.Beatrice20rc0_DestroyPitchContext1.argtypes = [ctypes.c_void_p]
         
@@ -41,7 +41,7 @@ class BeatriceModel:
         self.lib.Beatrice20rc0_ReadWaveformGeneratorParameters.restype = ctypes.c_int
         self.lib.Beatrice20rc0_DestroyWaveformGenerator.argtypes = [ctypes.c_void_p]
         
-        self.lib.Beatrice20rc0_CreateWaveformContext1.argtypes = [ctypes.c_void_p]
+        self.lib.Beatrice20rc0_CreateWaveformContext1.argtypes = []
         self.lib.Beatrice20rc0_CreateWaveformContext1.restype = ctypes.c_void_p
         self.lib.Beatrice20rc0_DestroyWaveformContext1.argtypes = [ctypes.c_void_p]
         
@@ -53,7 +53,7 @@ class BeatriceModel:
         self.lib.Beatrice20rc0_ReadSpeakerEmbeddings.restype = ctypes.c_int
         self.lib.Beatrice20rc0_DestroyEmbeddingSetter.argtypes = [ctypes.c_void_p]
         
-        self.lib.Beatrice20rc0_CreateEmbeddingContext.argtypes = [ctypes.c_void_p]
+        self.lib.Beatrice20rc0_CreateEmbeddingContext.argtypes = []
         self.lib.Beatrice20rc0_CreateEmbeddingContext.restype = ctypes.c_void_p
         self.lib.Beatrice20rc0_DestroyEmbeddingContext.argtypes = [ctypes.c_void_p]
 
@@ -134,8 +134,9 @@ class BeatriceModel:
         print("[+] All components successfully tested and released.")
 
 if __name__ == "__main__":
-    lib = "beatrice_2.0.0-rc.2.vst3/Contents/MacOS/beatrice_2.0.0-rc.2.signed"
-    paraphernalia = "beatrice_paraphernalia_jvs"
+    _here = os.path.dirname(os.path.abspath(__file__))
+    lib = os.path.join(_here, "beatrice_2.0.0-rc.2.vst3", "Contents", "MacOS", "beatrice_2.0.0-rc.2.signed")
+    paraphernalia = os.path.join(_here, "beatrice_paraphernalia_jvs")
     
     print("=== Project Beatrice Model Loader ===")
     model = BeatriceModel(lib, paraphernalia)

@@ -1,42 +1,50 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="obsidian" data-color-mode="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Project Beatrice – Real-time AI voice changer with 100 JVS corpus speakers, pitch/formant shifting, and PortAudio routing.">
   <title>Project Beatrice – AI Voice Changer</title>
+  <link rel="icon" type="image/png" href="icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Source+Code+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="index.css">
 </head>
 <body>
-  <!-- macOS-style titlebar — traffic lights live on the far left -->
-  <div class="window-titlebar" role="banner" aria-label="Application title bar">
+  <!-- macOS TITLEBAR -->
+  <div class="window-titlebar" role="presentation" aria-hidden="true">
     <div class="traffic-lights-spacer" aria-hidden="true"></div>
     <div class="window-title">PROJECT BEATRICE · AI VOICE CHANGER</div>
   </div>
 
   <div class="app-container">
-    <!-- Sidebar Controls -->
+
+    <!-- SIDEBAR -->
     <aside class="sidebar" role="complementary" aria-label="Voice changer controls">
 
       <div class="brand-section">
-        <div class="brand-logo" aria-hidden="true">B</div>
+        <div class="brand-logo" aria-hidden="true">
+          <svg viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="18" stroke="currentColor" stroke-width="2"/>
+            <path d="M8 20Q14 8 20 20Q26 32 32 20" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
         <div class="brand-details">
           <p class="brand-name">BEATRICE</p>
-          <span>Real-time DSP Engine v2.0.0</span>
+          <span class="brand-version">DSP ENGINE v2.0.0</span>
+          <span class="status-badge" id="backend-status-badge">CONNECTED</span>
         </div>
       </div>
 
       <!-- Power Toggle -->
-      <div class="power-container card">
-        <div class="power-header">
-          <span class="control-label">Voice Changer</span>
+      <div class="power-module card">
+        <div class="power-module-label">
+          <span class="control-label" data-i18n="power_label">Voice Changer</span>
           <div class="bypass-indicator active" id="bypass-status" role="status" aria-live="polite">BYPASSED</div>
         </div>
         <button class="btn-power active" id="power-toggle" aria-pressed="false" aria-label="Toggle voice changer bypass">
-          <svg class="power-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <svg class="power-icon" viewBox="0 0 24 24" fill="none">
             <path d="M12 3v9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
             <path d="M6.4 5.4A9 9 0 1 0 17.6 5.4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
           </svg>
@@ -46,9 +54,8 @@
 
       <!-- Audio Routing -->
       <div class="control-group card" role="group" aria-labelledby="audio-routing-heading">
-        <h2 class="control-group-heading" id="audio-routing-heading">Audio Routing</h2>
-
-        <!-- Input Selector -->
+        <h2 class="control-group-heading" id="audio-routing-heading" data-i18n="audio_routing">Audio Routing</h2>
+        <p class="control-group-desc">Output device receives your converted voice for other apps. Use headphones to avoid hearing yourself.</p>
         <div class="select-container">
           <label class="control-label" for="input-device-select">Input Microphone</label>
           <div class="select-wrapper">
@@ -57,8 +64,6 @@
             </select>
           </div>
         </div>
-
-        <!-- Output Selector -->
         <div class="select-container">
           <label class="control-label" for="output-device-select">Output Device</label>
           <div class="select-wrapper">
@@ -67,8 +72,6 @@
             </select>
           </div>
         </div>
-
-        <!-- Hear Yourself Toggle -->
         <div class="toggle-container">
           <label class="control-label" for="hear-yourself-toggle">Hear Yourself</label>
           <label class="switch" aria-label="Toggle hear yourself monitoring">
@@ -76,9 +79,7 @@
             <span class="switch-slider"></span>
           </label>
         </div>
-
-        <!-- Monitor Selector (shown only when Hear Yourself is on) -->
-        <div class="select-container" id="monitor-container" style="display: none;" aria-hidden="true">
+        <div class="select-container hidden" id="monitor-container" aria-hidden="true">
           <label class="control-label" for="monitor-device-select">Monitor Device</label>
           <div class="select-wrapper">
             <select id="monitor-device-select" class="dropdown-select">
@@ -88,140 +89,229 @@
         </div>
       </div>
 
-      <!-- Input Controls -->
-      <div class="control-group card" role="group" aria-labelledby="input-controls-heading">
-        <h2 class="control-group-heading" id="input-controls-heading">Input Controls</h2>
-
-        <!-- Noise Gate -->
-        <div class="slider-container">
-          <div class="slider-header">
-            <label class="control-label" for="gate-slider">Noise Gate</label>
-            <span class="slider-val" id="gate-val" aria-live="polite">0.010</span>
-          </div>
-          <input type="range" min="0" max="0.1" step="0.001" value="0.01" class="slider" id="gate-slider"
-                 aria-label="Noise gate threshold" aria-valuemin="0" aria-valuemax="0.1" aria-valuenow="0.01">
-        </div>
-
-        <!-- Input Level Meter -->
-        <div class="meter-container" role="meter" aria-label="Input audio level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-          <div class="slider-header">
-            <span class="control-label">Input Level</span>
-            <span class="meter-db-val" id="input-db-val">—</span>
-          </div>
-          <div class="meter-bar-bg">
-            <div class="meter-bar-fill" id="input-meter-fill"></div>
-          </div>
-        </div>
-      </div>
-
       <!-- DSP Modifiers -->
       <div class="control-group card" role="group" aria-labelledby="dsp-heading">
-        <h2 class="control-group-heading" id="dsp-heading">DSP Modifiers</h2>
-
-        <!-- Pitch Shift -->
+        <h2 class="control-group-heading" id="dsp-heading" data-i18n="dsp_modifiers">DSP Modifiers</h2>
         <div class="slider-container">
           <div class="slider-header">
             <label class="control-label" for="pitch-slider">Pitch Shift</label>
-            <span class="slider-val" id="pitch-val" aria-live="polite">0.0 st</span>
+            <span class="slider-val mono" id="pitch-val" aria-live="polite">0.0 st</span>
           </div>
-          <input type="range" min="-12" max="12" step="0.5" value="0" class="slider" id="pitch-slider"
-                 aria-label="Pitch shift in semitones" aria-valuemin="-12" aria-valuemax="12" aria-valuenow="0">
-          <div class="slider-ticks" aria-hidden="true">
-            <span>−12</span>
-            <span>0</span>
-            <span>+12</span>
-          </div>
+          <input type="range" min="-12" max="12" step="0.5" value="0" class="slider" id="pitch-slider" aria-label="Pitch shift in semitones" aria-valuemin="-12" aria-valuemax="12" aria-valuenow="0">
+          <div class="slider-ticks" aria-hidden="true"><span>-12</span><span>0</span><span>+12</span></div>
         </div>
-
-        <!-- Formant Shift -->
         <div class="slider-container">
           <div class="slider-header">
             <label class="control-label" for="formant-slider">Formant Shift</label>
-            <span class="slider-val" id="formant-val" aria-live="polite">0.0</span>
+            <span class="slider-val mono" id="formant-val" aria-live="polite">0.0</span>
           </div>
-          <input type="range" min="-1.5" max="1.5" step="0.1" value="0" class="slider" id="formant-slider"
-                 aria-label="Formant shift" aria-valuemin="-1.5" aria-valuemax="1.5" aria-valuenow="0">
-          <div class="slider-ticks" aria-hidden="true">
-            <span>−1.5</span>
-            <span>0</span>
-            <span>+1.5</span>
+          <input type="range" min="-1.5" max="1.5" step="0.1" value="0" class="slider" id="formant-slider" aria-label="Formant shift" aria-valuemin="-1.5" aria-valuemax="1.5" aria-valuenow="0">
+          <div class="slider-ticks" aria-hidden="true"><span>-1.5</span><span>0</span><span>+1.5</span></div>
+        </div>
+      </div>
+
+      <!-- Input Controls -->
+      <div class="control-group card" role="group" aria-labelledby="input-controls-heading">
+        <h2 class="control-group-heading" id="input-controls-heading" data-i18n="input_controls">Input Controls</h2>
+        <div class="slider-container">
+          <div class="slider-header">
+            <label class="control-label" for="gate-slider">Noise Gate</label>
+            <span class="slider-val mono" id="gate-val" aria-live="polite">0.010</span>
           </div>
+          <input type="range" min="0" max="0.1" step="0.001" value="0.01" class="slider" id="gate-slider" aria-label="Noise gate threshold" aria-valuemin="0" aria-valuemax="0.1" aria-valuenow="0.01">
+        </div>
+        <div class="meter-container" role="meter" aria-label="Input audio level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="slider-header">
+            <span class="control-label">Input Level</span>
+            <span class="meter-db-val mono" id="input-db-val">&mdash;</span>
+          </div>
+          <div class="meter-bar-bg"><div class="meter-bar-fill" id="input-meter-fill"></div></div>
         </div>
       </div>
 
       <!-- Output Controls -->
       <div class="control-group card" role="group" aria-labelledby="output-heading">
-        <h2 class="control-group-heading" id="output-heading">Output Controls</h2>
-
-        <!-- Output Gain -->
+        <h2 class="control-group-heading" id="output-heading" data-i18n="output_controls">Output Controls</h2>
         <div class="slider-container">
           <div class="slider-header">
             <label class="control-label" for="volume-slider">Output Volume</label>
-            <span class="slider-val" id="volume-val" aria-live="polite">100%</span>
+            <span class="slider-val mono" id="volume-val" aria-live="polite">100%</span>
           </div>
-          <input type="range" min="0" max="2" step="0.05" value="1" class="slider" id="volume-slider"
-                 aria-label="Output volume" aria-valuemin="0" aria-valuemax="200" aria-valuenow="100">
+          <input type="range" min="0" max="2" step="0.05" value="1" class="slider" id="volume-slider" aria-label="Output volume" aria-valuemin="0" aria-valuemax="200" aria-valuenow="100">
         </div>
-
-        <!-- Output Level Meter -->
         <div class="meter-container" role="meter" aria-label="Output audio level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
           <div class="slider-header">
             <span class="control-label">Output Level</span>
-            <span class="meter-db-val" id="output-db-val">—</span>
+            <span class="meter-db-val mono" id="output-db-val">&mdash;</span>
           </div>
-          <div class="meter-bar-bg">
-            <div class="meter-bar-fill output-fill" id="output-meter-fill"></div>
-          </div>
+          <div class="meter-bar-bg"><div class="meter-bar-fill output-fill" id="output-meter-fill"></div></div>
         </div>
       </div>
 
-      <!-- Backend Status Footer -->
+      <!-- Footer -->
       <div class="sidebar-footer" role="status" aria-live="polite">
         <div class="conn-dot" id="conn-dot" aria-hidden="true"></div>
-        <span class="conn-label" id="conn-label">Connecting…</span>
+        <span class="conn-label mono" id="conn-label">Connecting&hellip;</span>
       </div>
+
+
 
     </aside>
 
-    <!-- Main Content Area -->
+    <!-- MAIN CONTENT -->
     <main class="main-content" role="main">
-      <!-- Search & Stats Bar -->
+
       <div class="top-bar">
         <div class="search-container" role="search">
-          <svg class="search-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <svg class="search-icon" viewBox="0 0 20 20" fill="none">
             <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.6"/>
             <path d="M13 13l4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
           </svg>
-          <input type="search" placeholder="Search 100 voices by name or element…" class="search-input" id="search-box"
-                 aria-label="Search voices" autocomplete="off" spellcheck="false">
-          <span class="search-count" id="search-count" aria-live="polite"></span>
+          <input type="search" placeholder="Search 100 voices..." class="search-input" id="search-box" aria-label="Search voices" autocomplete="off" spellcheck="false">
+          <span class="search-count mono" id="search-count" aria-live="polite"></span>
         </div>
         <div class="status-panel" role="status">
           <div class="status-item" id="stream-status-item">
             <span class="status-dot" id="stream-dot"></span>
-            <span class="status-text" id="stream-status-text">Waiting for backend…</span>
+            <span class="status-text" id="stream-status-text">Waiting for backend...</span>
           </div>
           <div class="status-item">
-            <span class="status-label">Buffer:</span>
-            <span class="status-val">160 spl · 10 ms</span>
+            <span class="status-label">Latency:</span>
+            <span class="status-val mono" id="latency-val">10 ms</span>
           </div>
         </div>
       </div>
 
-      <!-- Page heading — one h1 per page for SEO -->
-      <div class="content-header">
-        <h1>Target Voices</h1>
-        <p>Select a JVS speaker to morph your voice. Each speaker maps to a unique chemical element in the periodic table.</p>
-      </div>
+      <nav class="content-tabs" aria-label="Content tabs">
+        <button class="tab-btn active" data-tab="voices" aria-selected="true" role="tab" data-i18n="tab_voices">Target Voices</button>
+        <button class="tab-btn" data-tab="soundboard-view" aria-selected="false" role="tab" data-i18n="tab_soundboard">Soundboard</button>
+        <button class="tab-btn" data-tab="settings-view" aria-selected="false" role="tab" data-i18n="tab_settings">
+          <svg viewBox="0 0 20 20" fill="none" width="14" height="14">
+            <path d="M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16.17 12.5a1.38 1.38 0 0 0 .27 1.52l.05.05a1.66 1.66 0 1 1-2.35 2.35l-.05-.05a1.38 1.38 0 0 0-1.52-.27 1.38 1.38 0 0 0-.83 1.26v.08a1.66 1.66 0 0 1-3.33 0v-.07a1.38 1.38 0 0 0-.9-1.26 1.38 1.38 0 0 0-1.52.27l-.05.05a1.66 1.66 0 1 1-2.35-2.35l.05-.05a1.38 1.38 0 0 0 .27-1.52 1.38 1.38 0 0 0-1.26-.83H2.5a1.66 1.66 0 0 1 0-3.33h.07a1.38 1.38 0 0 0 1.26-.9 1.38 1.38 0 0 0-.27-1.52L3.51 5.7a1.66 1.66 0 1 1 2.35-2.35l.05.05a1.38 1.38 0 0 0 1.52.27h.07a1.38 1.38 0 0 0 .83-1.26V2.5a1.66 1.66 0 0 1 3.33 0v.07a1.38 1.38 0 0 0 .83 1.26 1.38 1.38 0 0 0 1.52-.27l.05-.05a1.66 1.66 0 1 1 2.35 2.35l-.05.05a1.38 1.38 0 0 0-.27 1.52v.07a1.38 1.38 0 0 0 1.26.83h.08a1.66 1.66 0 0 1 0 3.33h-.07a1.38 1.38 0 0 0-1.26.9Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Settings
+        </button>
+      </nav>
 
-      <!-- Speakers Grid Container -->
-      <div class="speakers-grid" id="speakers-grid" role="listbox" aria-label="Available target voices">
-        <!-- Dynamically populated via renderer.js -->
-        <div class="loading-state" id="loading-state">
-          <div class="spinner" aria-hidden="true"></div>
-          <p>Loading 100 speaker profiles…</p>
+      <section id="tab-voices" class="tab-section active" role="tabpanel">
+        <div class="content-header">
+          <h1 data-i18n="voices_title">Target Voices</h1>
+          <p data-i18n="voices_desc">Select a JVS speaker to morph your voice. Each speaker maps to a unique chemical element.</p>
         </div>
-      </div>
+        <div class="speakers-grid" id="speakers-grid" role="listbox" aria-label="Available target voices">
+          <div class="loading-state" id="loading-state">
+            <div class="spinner" aria-hidden="true"></div>
+            <p>Loading 100 speaker profiles...</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-soundboard-view" class="tab-section" role="tabpanel">
+        <div class="content-header">
+          <h1 data-i18n="soundboard_title">Soundboard</h1>
+          <p data-i18n="soundboard_desc">Upload audio files, assign custom images, and play sounds. Click to play; right-click to change image or name.</p>
+          <button class="sb-upload-btn" id="sb-upload-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Upload Sound
+          </button>
+        </div>
+        <div class="soundboard-main-grid" id="soundboard-main-grid"></div>
+        <input type="file" id="sb-audio-input" accept="audio/*" multiple class="visually-hidden">
+      </section>
+
+      <section id="tab-settings-view" class="tab-section" role="tabpanel">
+        <div class="content-header">
+          <h1 data-i18n="settings_title">Settings</h1>
+          <p data-i18n="settings_desc">Appearance and preferences. Mode controls brightness; theme controls the accent palette.</p>
+        </div>
+
+        <div class="settings-inline">
+
+          <div class="settings-section">
+            <h3 class="settings-section-label" data-i18n="settings_language">Language</h3>
+            <p class="settings-section-subdesc" data-i18n="settings_language_desc">Choose the display language for the app interface.</p>
+            <div class="color-mode-toggle" role="radiogroup" aria-label="Language">
+              <button class="color-mode-btn lang-btn active" data-lang="en" role="radio" aria-checked="true">English</button>
+              <button class="color-mode-btn lang-btn" data-lang="ja" role="radio" aria-checked="false">日本語</button>
+              <button class="color-mode-btn lang-btn" data-lang="zh" role="radio" aria-checked="false">中文</button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h3 class="settings-section-label" data-i18n="settings_color_mode">Color Mode</h3>
+            <p class="settings-section-subdesc" data-i18n="settings_color_mode_desc">Pick a fixed mode or let Beatrice follow your system setting.</p>
+            <div class="color-mode-toggle" role="radiogroup" aria-label="Color mode">
+              <button class="color-mode-btn" data-mode="light" role="radio" aria-checked="false">
+                <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                Light
+              </button>
+              <button class="color-mode-btn active" data-mode="dark" role="radio" aria-checked="true">
+                <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M13.36 10.06A6 6 0 0 1 5.94 2.64 6 6 0 1 0 13.36 10.06Z"/></svg>
+                Dark
+              </button>
+              <button class="color-mode-btn" data-mode="system" role="radio" aria-checked="false">
+                <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><rect x="2" y="3" width="12" height="9" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5 14h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                System
+              </button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h3 class="settings-section-label" data-i18n="settings_theme">Theme</h3>
+            <p class="settings-section-subdesc" data-i18n="settings_theme_desc">Desktop palettes only. The selected mode is applied on top.</p>
+            <div class="theme-grid" id="theme-grid">
+              <button class="theme-card" data-theme="obsidian">
+                <div class="theme-preview"><div class="tp-sidebar"></div><div class="tp-main"><div class="tp-bar"></div><div class="tp-bar short"></div><div class="tp-accent"></div></div></div>
+                <div class="theme-card-info"><span class="theme-card-name">Obsidian</span><span class="theme-card-desc">Clean grayscale - minimal &amp; focused</span></div>
+                <span class="theme-check" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" width="16" height="16"><circle cx="8" cy="8" r="7.5" stroke="currentColor"/><path d="M4.5 8.5l2 2 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              </button>
+              <button class="theme-card" data-theme="midnight">
+                <div class="theme-preview"><div class="tp-sidebar"></div><div class="tp-main"><div class="tp-bar"></div><div class="tp-bar short"></div><div class="tp-accent"></div></div></div>
+                <div class="theme-card-info"><span class="theme-card-name">Midnight</span><span class="theme-card-desc">Deep blue-violet with cool accents</span></div>
+                <span class="theme-check" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" width="16" height="16"><circle cx="8" cy="8" r="7.5" stroke="currentColor"/><path d="M4.5 8.5l2 2 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              </button>
+              <button class="theme-card" data-theme="teal">
+                <div class="theme-preview"><div class="tp-sidebar"></div><div class="tp-main"><div class="tp-bar"></div><div class="tp-bar short"></div><div class="tp-accent"></div></div></div>
+                <div class="theme-card-info"><span class="theme-card-name">Teal</span><span class="theme-card-desc">Emerald accents on deep teal</span></div>
+                <span class="theme-check" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" width="16" height="16"><circle cx="8" cy="8" r="7.5" stroke="currentColor"/><path d="M4.5 8.5l2 2 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              </button>
+              <button class="theme-card" data-theme="amber">
+                <div class="theme-preview"><div class="tp-sidebar"></div><div class="tp-main"><div class="tp-bar"></div><div class="tp-bar short"></div><div class="tp-accent"></div></div></div>
+                <div class="theme-card-info"><span class="theme-card-name">Amber</span><span class="theme-card-desc">Warm gold &amp; bronze - retro lab</span></div>
+                <span class="theme-check" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" width="16" height="16"><circle cx="8" cy="8" r="7.5" stroke="currentColor"/><path d="M4.5 8.5l2 2 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              </button>
+              <button class="theme-card" data-theme="rose">
+                <div class="theme-preview"><div class="tp-sidebar"></div><div class="tp-main"><div class="tp-bar"></div><div class="tp-bar short"></div><div class="tp-accent"></div></div></div>
+                <div class="theme-card-info"><span class="theme-card-name">Rose</span><span class="theme-card-desc">Warm crimson &amp; pink accents</span></div>
+                <span class="theme-check" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" width="16" height="16"><circle cx="8" cy="8" r="7.5" stroke="currentColor"/><path d="M4.5 8.5l2 2 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              </button>
+              <button class="theme-card" data-theme="cyberpunk">
+                <div class="theme-preview"><div class="tp-sidebar"></div><div class="tp-main"><div class="tp-bar"></div><div class="tp-bar short"></div><div class="tp-accent"></div></div></div>
+                <div class="theme-card-info"><span class="theme-card-name">Cyberpunk</span><span class="theme-card-desc">Neon green on black - matrix terminal</span></div>
+                <span class="theme-check" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" width="16" height="16"><circle cx="8" cy="8" r="7.5" stroke="currentColor"/><path d="M4.5 8.5l2 2 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h3 class="settings-section-label" data-i18n="settings_factory_reset">Factory Reset</h3>
+            <div class="settings-row">
+              <div class="settings-info">
+                <span class="settings-name" data-i18n="settings_reset_name">Reset All Settings</span>
+                <span class="settings-desc" data-i18n="settings_reset_desc">Reset theme, soundboard, and preferences to defaults.</span>
+              </div>
+              <button class="btn-reset" id="settings-reset" data-i18n="settings_reset_btn">Reset</button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
     </main>
   </div>
 

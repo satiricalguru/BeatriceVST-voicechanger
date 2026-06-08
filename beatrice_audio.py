@@ -7,18 +7,26 @@ import threading
 import queue
 import time
 import signal
+import traceback
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
 import sounddevice as sd
 import numpy as np
 
+try:
+    import soundfile as sf
+    HAS_SF = True
+except ImportError:
+    HAS_SF = False
+    print("[!] soundfile not installed — soundboard playback disabled. Install with: pip install soundfile")
+
 # Global configurations
 class Config:
+    # bypass=True means DSP is INACTIVE (raw mic passthrough).
     # bypass=False means DSP is ACTIVE (voice is being converted).
-    # bypass=True means raw mic passthrough (user hears their own voice).
-    # Start with DSP active so voice conversion works immediately on launch.
-    bypass = False
-    speaker_index = 0
+    # Start with bypass=True so the user hears their own raw mic on launch.
+    bypass = True
+    speaker_index = -1
     pitch_shift = 0.0  # Semitones shift
     formant_shift = 0.0  # Formant shift value
     volume = 1.0
@@ -252,7 +260,80 @@ def restart_audio_streams():
         except Exception as e:
             print("[-] PortAudio stream configuration error:", e)
 
-# HTTP Control Server to interface with Electron
+def play_soundboard_audio(file_path, hear_yourself=False):
+    """Play an audio file through the selected output device.
+    If hear_yourself is True, also plays through the monitor device."""
+    global _sb_stop_event
+    _sb_stop_event.clear()
+    if not HAS_SF:
+        return
+    try:
+        data, samplerate = sf.read(file_path, dtype='float32')
+        if data.ndim > 1:
+            data = data.mean(axis=1)
+        target_sr = 48000
+        if samplerate != target_sr:
+            duration = len(data) / samplerate
+            new_len = int(round(duration * target_sr))
+            data = np.interp(
+                np.linspace(0, len(data), new_len, endpoint=False),
+                np.arange(len(data)),
+                data
+            ).astype(np.float32)
+        peak = float(np.max(np.abs(data)))
+        if peak > 0:
+            data = data / peak * 0.9
+
+        out_dev = Config.output_device_id
+        mon_dev = Config.monitor_device_id
+        chunk_size = 4800  # 100ms chunks at 48kHz
+
+        def _play_stream(device, sr, audio_data):
+            try:
+                with sd.OutputStream(device=device, samplerate=sr, channels=1, dtype='float32') as s:
+                    for i in range(0, len(audio_data), chunk_size):
+                        if _sb_stop_event.is_set():
+                            break
+                        s.write(audio_data[i:i+chunk_size])
+            except Exception:
+                pass
+
+        if hear_yourself:
+            try:
+                mon_info = sd.query_devices(mon_dev, 'output') if mon_dev else sd.query_devices(kind='output')
+                mon_sr = int(mon_info['default_samplerate'])
+            except Exception:
+                mon_sr = target_sr
+            if mon_sr != target_sr:
+                new_len = int(round(len(data) * mon_sr / target_sr))
+                mon_data = np.interp(
+                    np.linspace(0, len(data), new_len, endpoint=False),
+                    np.arange(len(data)),
+                    data
+                ).astype(np.float32)
+            else:
+                mon_data = data
+            t_out = threading.Thread(target=_play_stream, args=(out_dev, target_sr, data), daemon=True)
+            t_mon = threading.Thread(target=_play_stream, args=(mon_dev, mon_sr, mon_data), daemon=True)
+            t_out.start()
+            t_mon.start()
+            t_out.join()
+            t_mon.join()
+        else:
+            # Wrap in a thread so the function returns immediately
+            # and the HTTP handler is never stalled during playback.
+            t_out = threading.Thread(target=_play_stream, args=(out_dev, target_sr, data), daemon=True)
+            t_out.start()
+    except Exception as e:
+        print(f"[-] Soundboard playback error: {e}")
+        traceback.print_exc()
+
+_sb_stop_event = threading.Event()
+
+def stop_soundboard_audio():
+    _sb_stop_event.set()
+
+
 class ControlHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         pass  # Suppress request logging for clean console
@@ -351,6 +432,26 @@ class ControlHandler(BaseHTTPRequestHandler):
                 threading.Thread(target=restart_audio_streams, daemon=True).start()
                 
             self.wfile.write(json.dumps({"status": "success"}).encode())
+
+        elif parsed.path == '/play_sound':
+            if not HAS_SF:
+                self.wfile.write(json.dumps({"error": "soundfile not installed"}).encode())
+                return
+            file_path = query.get('file_path', [None])[0]
+            hear_yourself = query.get('hear_yourself', ['false'])[0].lower() == 'true'
+            if not file_path or not os.path.isfile(file_path):
+                self.wfile.write(json.dumps({"error": "File not found"}).encode())
+                return
+            threading.Thread(
+                target=play_soundboard_audio,
+                args=(file_path, hear_yourself),
+                daemon=True
+            ).start()
+            self.wfile.write(json.dumps({"status": "playing"}).encode())
+
+        elif parsed.path == '/stop_sound':
+            stop_soundboard_audio()
+            self.wfile.write(json.dumps({"status": "stopped"}).encode())
 
 def run_http_server():
     server = HTTPServer(('127.0.0.1', 5005), ControlHandler)
@@ -540,8 +641,9 @@ def update_formant_shift(formant_shift_val):
     except Exception as e:
         print("Error in update_formant_shift:", e)
 
-# Apply default speaker index 0 and default formant shift 0.0 on startup
-update_target_speaker(Config.speaker_index)
+# Apply default speaker index and formant shift 0.0 on startup
+if Config.speaker_index >= 0:
+    update_target_speaker(Config.speaker_index)
 update_formant_shift(Config.formant_shift)
 
 # Mark DSP as fully ready — the audio callback checks this flag before
@@ -601,14 +703,16 @@ def audio_callback(indata, outdata, frames, time_info, status):
 
     # --- Bypass: pass mic audio through unchanged ---
     if Config.bypass or not Config.dsp_ready:
-        out_numpy = in_samples * Config.volume
-        outdata[:, 0] = out_numpy
         Config.output_meter = float(Config.input_meter * Config.volume)
         if Config.hear_yourself:
+            out_numpy = in_samples * Config.volume
+            outdata[:, 0] = out_numpy
             try:
                 monitor_queue.put_nowait(out_numpy.copy())
             except queue.Full:
                 pass
+        else:
+            outdata[:, 0] = 0.0
         return
 
     # --- Noise gate ---
@@ -677,7 +781,10 @@ def audio_callback(indata, outdata, frames, time_info, status):
         print(f'[Beatrice] DSP callback exception (falling back to passthrough): {exc}')
         traceback.print_exc()
         fallback = in_samples * Config.volume
-        outdata[:, 0] = fallback
+        if Config.hear_yourself:
+            outdata[:, 0] = fallback
+        else:
+            outdata[:, 0] = 0.0
         Config.output_meter = float(Config.input_meter * Config.volume)
 
 # Launch HTTP service
