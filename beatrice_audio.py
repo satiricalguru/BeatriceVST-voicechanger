@@ -462,6 +462,8 @@ def run_http_server():
 # Resolve all paths relative to this script's directory so the project
 # works on any machine regardless of where it is cloned or extracted.
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+if os.path.basename(_BASE_DIR) == "app.asar.unpacked":
+    _BASE_DIR = os.path.dirname(_BASE_DIR)
 lib_path = os.path.join(
     _BASE_DIR,
     "beatrice_2.0.0-rc.2.vst3", "Contents", "MacOS", "beatrice_2.0.0-rc.2.signed"
