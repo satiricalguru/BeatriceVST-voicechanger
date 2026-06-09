@@ -16,7 +16,13 @@ const STORAGE_KEY_MODE  = 'beatrice_color_mode';
 const STORAGE_KEY_SB    = 'beatrice_soundboard';
 const STORAGE_KEY_LANG  = 'beatrice_language';
 
-const SOUNDBOARD_DIR = path.join(__dirname, 'soundboard_audio');
+// When packaged, __dirname contains 'app.asar' (the virtual archive path).
+// Files in extraResources land at process.resourcesPath (Contents/Resources/).
+// Use that as the base so TOML and soundboard paths resolve to real disk paths.
+const IS_PACKAGED = __dirname.includes('app.asar');
+const APP_BASE    = IS_PACKAGED ? process.resourcesPath : __dirname;
+
+const SOUNDBOARD_DIR = path.join(APP_BASE, 'soundboard_audio');
 if (!fs.existsSync(SOUNDBOARD_DIR)) fs.mkdirSync(SOUNDBOARD_DIR, { recursive: true });
 
 // ════════════════════════════════════════════════════════════
@@ -463,7 +469,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 // ════════════════════════════════════════════════════════════
 function loadSpeakerData() {
   try {
-    const tomlPath = path.join(__dirname, 'beatrice_paraphernalia_jvs', 'beatrice_paraphernalia_jvs.toml');
+    const tomlPath = path.join(APP_BASE, 'beatrice_paraphernalia_jvs', 'beatrice_paraphernalia_jvs.toml');
     if (!fs.existsSync(tomlPath)) {
       showSpeakerError('Model config file not found. Please check beatrice_paraphernalia_jvs/');
       return;
