@@ -758,8 +758,9 @@ function updateSearchCount(shown, total) {
 // ════════════════════════════════════════════════════════════
 async function loadAudioDevices() {
   try {
-    const res     = await fetch(`${BACKEND_URL}/devices`);
+    const res     = await fetch(`${BACKEND_URL}/devices`, { signal: AbortSignal.timeout(1000) });
     const devices = await res.json();
+    if (!Array.isArray(devices) || devices.length === 0) return false;
 
     const prevIn  = inputDeviceSelect.value;
     const prevOut = outputDeviceSelect.value;
@@ -786,14 +787,21 @@ async function loadAudioDevices() {
     if ([...inputDeviceSelect.options].some(o => o.value === prevIn))   inputDeviceSelect.value  = prevIn;
     if ([...outputDeviceSelect.options].some(o => o.value === prevOut)) outputDeviceSelect.value = prevOut;
     if ([...monitorDeviceSelect.options].some(o => o.value === prevMon)) monitorDeviceSelect.value = prevMon;
+    return true;
   } catch {
-    // Backend not yet available
+    return false;
   }
 }
 
-[inputDeviceSelect, outputDeviceSelect, monitorDeviceSelect].forEach(sel => {
-  sel.addEventListener('focus', loadAudioDevices, { once: false });
-});
+// Refresh devices button — lets users rescan without reopening the app
+const refreshDevicesBtn = document.getElementById('refresh-devices-btn');
+if (refreshDevicesBtn) {
+  refreshDevicesBtn.addEventListener('click', () => loadAudioDevices());
+}
+
+// NOTE: Do NOT use 'focus' to reload devices — the native macOS <select> dropdown
+// renders synchronously from the current DOM *before* the async fetch completes,
+// so options added during the fetch are invisible until the next open.
 
 inputDeviceSelect.addEventListener('change', () =>
   setBackendConfig({ input_device_id: inputDeviceSelect.value }));
@@ -853,16 +861,19 @@ async function pollBackendStatus() {
     setBackendStatus(true);
 
     if (!devicesLoaded) {
-      await loadAudioDevices();
-      if (status.input_device_id   != null) inputDeviceSelect.value  = String(status.input_device_id);
-      if (status.output_device_id  != null) outputDeviceSelect.value = String(status.output_device_id);
-      if (status.monitor_device_id != null) monitorDeviceSelect.value = String(status.monitor_device_id);
-      if (typeof status.hear_yourself === 'boolean') {
-        hearYourselfToggle.checked = status.hear_yourself;
-        monitorContainer.classList.toggle('hidden', !status.hear_yourself);
-        monitorContainer.setAttribute('aria-hidden', String(!status.hear_yourself));
+      const ok = await loadAudioDevices();
+      if (ok) {
+        if (status.input_device_id   != null) inputDeviceSelect.value  = String(status.input_device_id);
+        if (status.output_device_id  != null) outputDeviceSelect.value = String(status.output_device_id);
+        if (status.monitor_device_id != null) monitorDeviceSelect.value = String(status.monitor_device_id);
+        if (typeof status.hear_yourself === 'boolean') {
+          hearYourselfToggle.checked = status.hear_yourself;
+          monitorContainer.classList.toggle('hidden', !status.hear_yourself);
+          monitorContainer.setAttribute('aria-hidden', String(!status.hear_yourself));
+        }
+        devicesLoaded = true;
       }
-      devicesLoaded = true;
+      // If ok===false, devicesLoaded stays false and we retry next poll cycle
     }
 
     const inW  = Math.min(100, (status.input_meter  || 0) * 350);

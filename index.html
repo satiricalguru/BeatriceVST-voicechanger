@@ -54,7 +54,13 @@
 
       <!-- Audio Routing -->
       <div class="control-group card" role="group" aria-labelledby="audio-routing-heading">
-        <h2 class="control-group-heading" id="audio-routing-heading" data-i18n="audio_routing">Audio Routing</h2>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <h2 class="control-group-heading" id="audio-routing-heading" data-i18n="audio_routing" style="margin:0">Audio Routing</h2>
+          <button id="refresh-devices-btn" title="Rescan audio devices" aria-label="Refresh audio device list" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);cursor:pointer;font-size:11px;padding:3px 8px;display:flex;align-items:center;gap:4px;white-space:nowrap;transition:color .15s,border-color .15s" onmouseover="this.style.color='var(--text)';this.style.borderColor='var(--accent)'" onmouseout="this.style.color='var(--text-muted)';this.style.borderColor='var(--border)'">
+            <svg viewBox="0 0 16 16" fill="none" width="12" height="12"><path d="M14 8A6 6 0 0 1 2.1 9.9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M2 8a6 6 0 0 1 11.9-1.9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M14 5v3h-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11V8h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Refresh
+          </button>
+        </div>
         <p class="control-group-desc">Output device receives your converted voice for other apps. Use headphones to avoid hearing yourself.</p>
         <div class="select-container">
           <label class="control-label" for="input-device-select">Input Microphone</label>
