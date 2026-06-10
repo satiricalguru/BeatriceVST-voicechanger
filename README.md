@@ -195,13 +195,23 @@ BeatriceVST-voicechanger/
     └── noimage.png            # Placeholder
 ```
 
-## Packaging for Windows (Executable Installer)
+## Packaging for Windows
 
-To compile the application into a standalone installer (`.exe`) and portable folder:
+You can build the application using two methods depending on your Windows security permissions:
+
+### Method 1: Portable Zip Build (Recommended)
+This uses `electron-packager` to create a lightweight, portable folder. It runs completely in user space and does not require administrator privileges or Developer Mode:
+```powershell
+npm run package:win
+```
+This generates the unpacked application folder inside the `dist/` directory (e.g. `dist/Beatrice Voice Changer-win32-x64/`), which can then be zipped and run portably.
+
+### Method 2: Installer/NSIS Build
+To compile into a standalone `.exe` installer (requires Administrator privileges or Developer Mode enabled on Windows to support the macOS symlink extraction required by `electron-builder`'s signing tools):
 ```powershell
 npm run dist:win
 ```
-This will compile and generate the output inside the `dist/` directory:
+This will compile and generate:
 - `dist/Beatrice Voice Changer Setup 1.0.0.exe` (NSIS Installer)
 - `dist/Beatrice Voice Changer-1.0.0-win.zip` (Portable Package)
 

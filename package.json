@@ -13,7 +13,8 @@
     "start": "electron .",
     "dev": "electron . --enable-logging",
     "dist": "electron-builder --mac --publish never",
-    "dist:win": "electron-builder --win --publish never"
+    "dist:win": "electron-builder --win --publish never",
+    "package:win": "electron-packager . \"Beatrice Voice Changer\" --platform=win32 --arch=x64 --out=dist --overwrite --icon=icon.png"
   },
   "keywords": [
     "voice-changer",
@@ -26,7 +27,8 @@
   "license": "MIT",
   "devDependencies": {
     "electron": "^30.0.0",
-    "electron-builder": "^24.13.3"
+    "electron-builder": "^24.13.3",
+    "electron-packager": "^17.1.2"
   },
   "build": {
     "appId": "com.satiricalguru.beatrice-voice-changer",
