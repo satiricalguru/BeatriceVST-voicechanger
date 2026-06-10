@@ -595,7 +595,7 @@ function renderSpeakers(profiles) {
 
     card.innerHTML = `
       <div class="speaker-elem-tag"
-           style="background:hsl(${hue},60%,50%,0.14);color:hsl(${hue},80%,72%);border-color:hsl(${hue},60%,60%,0.22);"
+           style="background:hsl(${hue},60%,50%,var(--elem-bg-opacity));color:hsl(${hue},80%,var(--elem-text-lightness));border-color:hsl(${hue},60%,60%,var(--elem-border-opacity));"
            aria-hidden="true">${elemStr}</div>
       <div class="speaker-id">${jvsId}</div>
       <div class="speaker-name">${speaker.name}</div>
@@ -904,3 +904,19 @@ renderSoundboardMain();
 loadSpeakerData();
 applyBypassUI(voiceChangerBypass);
 setInterval(pollBackendStatus, 250);
+
+// Window controls for non-macOS (Windows/Linux)
+if (process.platform !== 'darwin') {
+  document.body.classList.add('is-win');
+  const { ipcRenderer } = require('electron');
+  
+  const minBtn = document.getElementById('win-min');
+  const maxBtn = document.getElementById('win-max');
+  const closeBtn = document.getElementById('win-close');
+  
+  if (minBtn) minBtn.addEventListener('click', () => ipcRenderer.send('win-minimize'));
+  if (maxBtn) maxBtn.addEventListener('click', () => ipcRenderer.send('win-maximize'));
+  if (closeBtn) closeBtn.addEventListener('click', () => ipcRenderer.send('win-close'));
+} else {
+  document.body.classList.add('is-mac');
+}

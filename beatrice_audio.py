@@ -113,20 +113,21 @@ signal.signal(signal.SIGTERM, cleanup_and_exit)
 def check_parent_alive():
     """
     Monitor whether the parent Electron process is still alive.
-    We record the parent PID at startup; if it ever changes (i.e. the process
-    was re-parented because Electron died), we trigger a clean shutdown.
-    On macOS/Linux a dead parent is re-parented to PID 1 (launchd/init).
+    We check if the parent PID is still running using os.kill(pid, 0).
+    If it is no longer running (throws OSError), we trigger a clean shutdown.
+    On Windows, child processes are automatically cleaned up by OS Job Objects,
+    so we can skip this check to avoid platform-specific os.kill issues.
     """
+    if sys.platform == 'win32':
+        return
     original_ppid = os.getppid()
     while True:
         time.sleep(2)
         try:
-            current_ppid = os.getppid()
-            if current_ppid != original_ppid:
-                print("[-] Parent process (Electron) terminated. Triggering auto-cleanup...")
-                cleanup_and_exit()
-        except Exception:
-            pass
+            os.kill(original_ppid, 0)
+        except OSError:
+            print("[-] Parent process (Electron) terminated. Triggering auto-cleanup...")
+            cleanup_and_exit()
 
 parent_monitor_thread = threading.Thread(target=check_parent_alive, daemon=True)
 parent_monitor_thread.start()
@@ -464,10 +465,16 @@ def run_http_server():
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 if os.path.basename(_BASE_DIR) == "app.asar.unpacked":
     _BASE_DIR = os.path.dirname(_BASE_DIR)
-lib_path = os.path.join(
-    _BASE_DIR,
-    "beatrice_2.0.0-rc.2.vst3", "Contents", "MacOS", "beatrice_2.0.0-rc.2.signed"
-)
+if sys.platform == 'win32':
+    lib_path = os.path.join(
+        _BASE_DIR,
+        "beatrice_2.0.0-rc.2.vst3", "Contents", "x86_64-win", "beatrice_2.0.0-rc.2.dll"
+    )
+else:
+    lib_path = os.path.join(
+        _BASE_DIR,
+        "beatrice_2.0.0-rc.2.vst3", "Contents", "MacOS", "beatrice_2.0.0-rc.2.signed"
+    )
 if not os.path.exists(lib_path):
     print(f"[-] Library not found: {lib_path}")
     sys.exit(1)

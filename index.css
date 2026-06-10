@@ -11,6 +11,22 @@
   --ease-spring: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+html[data-color-mode="dark"] {
+  --accent-fg: #000000;
+  --checkmark-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6l3 3 5-5' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+  --elem-bg-opacity: 0.14;
+  --elem-text-lightness: 72%;
+  --elem-border-opacity: 0.22;
+}
+
+html[data-color-mode="light"] {
+  --accent-fg: #ffffff;
+  --checkmark-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6l3 3 5-5' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+  --elem-bg-opacity: 0.08;
+  --elem-text-lightness: 35%;
+  --elem-border-opacity: 0.15;
+}
+
 /* ── RESET ──────────────────────────────────────────────── */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 html { font-size: 14px; }
@@ -361,7 +377,7 @@ html[data-theme="cyberpunk"][data-color-mode="light"] {
 }
 
 /* ════════════════════════════════════════════════════════════
-   macOS TITLEBAR
+   TITLEBAR & WINDOW CONTROLS
    ════════════════════════════════════════════════════════════ */
 .window-titlebar {
   height: 40px;
@@ -378,11 +394,60 @@ html[data-theme="cyberpunk"][data-color-mode="light"] {
 }
 
 .traffic-lights-spacer {
+  display: none;
   position: absolute;
   left: 0;
   width: 80px;
   height: 100%;
   -webkit-app-region: no-drag;
+}
+
+body.is-mac .traffic-lights-spacer {
+  display: block;
+}
+
+.window-controls {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  align-items: center;
+  -webkit-app-region: no-drag;
+  z-index: 20;
+}
+
+body.is-win .window-controls {
+  display: flex;
+}
+
+.win-btn {
+  width: 46px;
+  height: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  outline: none;
+}
+
+.win-btn svg {
+  width: 10px;
+  height: 10px;
+}
+
+.win-btn:hover {
+  background: var(--border-hover);
+  color: var(--text-hi);
+}
+
+.win-btn.win-close:hover {
+  background: var(--red);
+  color: #fff;
 }
 
 .window-title {
@@ -443,7 +508,7 @@ html[data-theme="cyberpunk"][data-color-mode="light"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #000;
+  color: var(--accent-fg);
   box-shadow: 0 0 18px var(--accent-glow), 0 4px 12px var(--shadow);
   transition: box-shadow 0.3s ease;
 }
@@ -578,7 +643,7 @@ html[data-theme="cyberpunk"][data-color-mode="light"] {
 .btn-power.live {
   background: var(--accent);
   border-color: var(--accent);
-  color: #000;
+  color: var(--accent-fg);
   box-shadow: 0 0 24px var(--accent-glow), 0 4px 16px var(--shadow);
 }
 
@@ -824,7 +889,7 @@ html[data-theme="cyberpunk"][data-color-mode="light"] {
 
 .sb-upload-btn:hover {
   background: var(--accent);
-  color: #000;
+  color: var(--accent-fg);
   box-shadow: 0 0 16px var(--accent-glow);
 }
 
@@ -892,7 +957,7 @@ html[data-theme="cyberpunk"][data-color-mode="light"] {
 .sb-play-btn svg {
   width: 20px;
   height: 20px;
-  color: #000;
+  color: var(--accent-fg);
 }
 
 .sb-play-btn.is-playing svg {
@@ -1286,8 +1351,8 @@ html[data-theme="cyberpunk"][data-color-mode="light"] {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: var(--accent);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6l3 3 5-5' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+  background-color: var(--accent);
+  background-image: var(--checkmark-url);
   background-repeat: no-repeat;
   background-position: center;
   background-size: 12px;
@@ -1458,36 +1523,67 @@ html[data-theme="cyberpunk"][data-color-mode="light"] {
   margin-top: 4px;
 }
 
-/* Theme preview colors */
-[data-theme="midnight"] .tp-sidebar { background: #0c0c18; }
-[data-theme="midnight"] .tp-main { background: #08080f; }
-[data-theme="midnight"] .tp-bar { background: #334; }
-[data-theme="midnight"] .tp-accent { background: #00c8ff; box-shadow: 0 0 12px rgba(0,200,255,0.5); }
+/* Theme preview colors — Dark Mode default */
+.theme-card[data-theme="midnight"] .tp-sidebar { background: #0c0c18; }
+.theme-card[data-theme="midnight"] .tp-main { background: #08080f; }
+.theme-card[data-theme="midnight"] .tp-bar { background: #334; }
+.theme-card[data-theme="midnight"] .tp-accent { background: #00c8ff; box-shadow: 0 0 12px rgba(0,200,255,0.5); }
 
-[data-theme="teal"] .tp-sidebar { background: #081616; }
-[data-theme="teal"] .tp-main { background: #040d0d; }
-[data-theme="teal"] .tp-bar { background: #1a4040; }
-[data-theme="teal"] .tp-accent { background: #00ffc8; box-shadow: 0 0 12px rgba(0,255,200,0.5); }
+.theme-card[data-theme="teal"] .tp-sidebar { background: #081616; }
+.theme-card[data-theme="teal"] .tp-main { background: #040d0d; }
+.theme-card[data-theme="teal"] .tp-bar { background: #1a4040; }
+.theme-card[data-theme="teal"] .tp-accent { background: #00ffc8; box-shadow: 0 0 12px rgba(0,255,200,0.5); }
 
-[data-theme="amber"] .tp-sidebar { background: #14100a; }
-[data-theme="amber"] .tp-main { background: #0a0804; }
-[data-theme="amber"] .tp-bar { background: #403020; }
-[data-theme="amber"] .tp-accent { background: #ffb400; box-shadow: 0 0 12px rgba(255,180,0,0.5); }
+.theme-card[data-theme="amber"] .tp-sidebar { background: #14100a; }
+.theme-card[data-theme="amber"] .tp-main { background: #0a0804; }
+.theme-card[data-theme="amber"] .tp-bar { background: #403020; }
+.theme-card[data-theme="amber"] .tp-accent { background: #ffb400; box-shadow: 0 0 12px rgba(255,180,0,0.5); }
 
-[data-theme="rose"] .tp-sidebar { background: #160a10; }
-[data-theme="rose"] .tp-main { background: #0a0408; }
-[data-theme="rose"] .tp-bar { background: #402030; }
-[data-theme="rose"] .tp-accent { background: #ff6496; box-shadow: 0 0 12px rgba(255,100,150,0.5); }
+.theme-card[data-theme="rose"] .tp-sidebar { background: #160a10; }
+.theme-card[data-theme="rose"] .tp-main { background: #0a0408; }
+.theme-card[data-theme="rose"] .tp-bar { background: #402030; }
+.theme-card[data-theme="rose"] .tp-accent { background: #ff6496; box-shadow: 0 0 12px rgba(255,100,150,0.5); }
 
-[data-theme="obsidian"] .tp-sidebar { background: #0e0e0e; }
-[data-theme="obsidian"] .tp-main { background: #080808; }
-[data-theme="obsidian"] .tp-bar { background: #333; }
-[data-theme="obsidian"] .tp-accent { background: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.3); }
+.theme-card[data-theme="obsidian"] .tp-sidebar { background: #0e0e0e; }
+.theme-card[data-theme="obsidian"] .tp-main { background: #080808; }
+.theme-card[data-theme="obsidian"] .tp-bar { background: #333; }
+.theme-card[data-theme="obsidian"] .tp-accent { background: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.3); }
 
-[data-theme="cyberpunk"] .tp-sidebar { background: #061206; }
-[data-theme="cyberpunk"] .tp-main { background: #020a02; }
-[data-theme="cyberpunk"] .tp-bar { background: #1a3a1a; }
-[data-theme="cyberpunk"] .tp-accent { background: #39ff14; box-shadow: 0 0 12px rgba(57,255,20,0.5); }
+.theme-card[data-theme="cyberpunk"] .tp-sidebar { background: #061206; }
+.theme-card[data-theme="cyberpunk"] .tp-main { background: #020a02; }
+.theme-card[data-theme="cyberpunk"] .tp-bar { background: #1a3a1a; }
+.theme-card[data-theme="cyberpunk"] .tp-accent { background: #39ff14; box-shadow: 0 0 12px rgba(57,255,20,0.5); }
+
+/* Theme preview colors — Light Mode adaptive */
+html[data-color-mode="light"] .theme-card[data-theme="midnight"] .tp-sidebar { background: #e8e9ee; }
+html[data-color-mode="light"] .theme-card[data-theme="midnight"] .tp-main { background: #f0f1f5; }
+html[data-color-mode="light"] .theme-card[data-theme="midnight"] .tp-bar { background: #ccc; }
+html[data-color-mode="light"] .theme-card[data-theme="midnight"] .tp-accent { background: #0088cc; box-shadow: 0 0 12px rgba(0,136,204,0.3); }
+
+html[data-color-mode="light"] .theme-card[data-theme="teal"] .tp-sidebar { background: #ddeee9; }
+html[data-color-mode="light"] .theme-card[data-theme="teal"] .tp-main { background: #eef6f4; }
+html[data-color-mode="light"] .theme-card[data-theme="teal"] .tp-bar { background: #b0d5cb; }
+html[data-color-mode="light"] .theme-card[data-theme="teal"] .tp-accent { background: #059669; box-shadow: 0 0 12px rgba(5,150,105,0.3); }
+
+html[data-color-mode="light"] .theme-card[data-theme="amber"] .tp-sidebar { background: #ebe4d8; }
+html[data-color-mode="light"] .theme-card[data-theme="amber"] .tp-main { background: #f5f0e8; }
+html[data-color-mode="light"] .theme-card[data-theme="amber"] .tp-bar { background: #dcd0be; }
+html[data-color-mode="light"] .theme-card[data-theme="amber"] .tp-accent { background: #b45309; box-shadow: 0 0 12px rgba(180,83,9,0.3); }
+
+html[data-color-mode="light"] .theme-card[data-theme="rose"] .tp-sidebar { background: #ece4ea; }
+html[data-color-mode="light"] .theme-card[data-theme="rose"] .tp-main { background: #f5eef2; }
+html[data-color-mode="light"] .theme-card[data-theme="rose"] .tp-bar { background: #dccfd7; }
+html[data-color-mode="light"] .theme-card[data-theme="rose"] .tp-accent { background: #be185d; box-shadow: 0 0 12px rgba(190,24,93,0.3); }
+
+html[data-color-mode="light"] .theme-card[data-theme="obsidian"] .tp-sidebar { background: #e8e8e8; }
+html[data-color-mode="light"] .theme-card[data-theme="obsidian"] .tp-main { background: #f4f4f4; }
+html[data-color-mode="light"] .theme-card[data-theme="obsidian"] .tp-bar { background: #ccc; }
+html[data-color-mode="light"] .theme-card[data-theme="obsidian"] .tp-accent { background: #111111; box-shadow: 0 0 12px rgba(0,0,0,0.15); }
+
+html[data-color-mode="light"] .theme-card[data-theme="cyberpunk"] .tp-sidebar { background: #d4ecd0; }
+html[data-color-mode="light"] .theme-card[data-theme="cyberpunk"] .tp-main { background: #e8f5e4; }
+html[data-color-mode="light"] .theme-card[data-theme="cyberpunk"] .tp-bar { background: #b8d4b0; }
+html[data-color-mode="light"] .theme-card[data-theme="cyberpunk"] .tp-accent { background: #16a34a; box-shadow: 0 0 12px rgba(22,163,74,0.3); }
 
 .theme-card-info {
   padding: 10px 12px;
@@ -1515,7 +1611,7 @@ html[data-theme="cyberpunk"][data-color-mode="light"] {
   height: 22px;
   border-radius: 50%;
   background: var(--accent);
-  color: #000;
+  color: var(--accent-fg);
   display: none;
   align-items: center;
   justify-content: center;

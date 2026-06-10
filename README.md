@@ -1,17 +1,17 @@
 <div align="center">
 
-# 🎙️ Project Beatrice
+# 🎙️ Project Beatrice (Windows Version)
 
-### Real-Time AI Voice Changer
+### Real-Time AI Voice Changer for Windows
 
-![macOS](https://img.shields.io/badge/-macOS%2012%2B-black?style=flat-square&logo=apple)
+![Windows](https://img.shields.io/badge/-Windows%2010%2F11%20(64--bit)-blue?style=flat-square&logo=windows)
 ![Electron](https://img.shields.io/badge/-Electron%2030-blueviolet?style=flat-square&logo=electron)
 ![Python](https://img.shields.io/badge/-Python%203.9%2B-3776AB?style=flat-square&logo=python)
 ![License](https://img.shields.io/badge/-MIT-green?style=flat-square)
 
 <img src="beatrice_paraphernalia_jvs/noimage.png" width="140" alt="Beatrice Logo" />
 
-**Morph your voice in real-time** using 100 AI speakers from the JVS corpus — powered by the Beatrice 2.0.0-rc.2 DSP engine with sub-10ms latency.
+**Morph your voice in real-time** using 100 AI speakers from the JVS corpus — powered by the Beatrice 2.0.0-rc.2 DSP engine with sub-10ms latency. Optimized and wrapper-compiled specifically for Windows platforms.
 
 </div>
 
@@ -52,9 +52,10 @@
 </td>
 <td>
 
-### 🎨 Theming
+### 🎨 Theming & Native Controls
 - 6 handcrafted themes (Obsidian, Midnight, Teal, Amber, Rose, Cyberpunk)
-- Light & dark mode per theme
+- Adaptive Light & dark modes for each theme
+- Built-in custom Windows Titlebar Controls (Minimize, Maximize, Close)
 - 3 languages (English, Japanese, Chinese)
 
 </td>
@@ -65,15 +66,16 @@
 
 ## 🖥️ Requirements
 
-| Dependency | Version |
-|---|---|
-| macOS | 12 Monterey or later (Apple Silicon or Intel) |
-| Node.js | 18+ |
-| Python | 3.9+ |
-| sounddevice | `pip install sounddevice` |
-| numpy | `pip install numpy` |
+| Dependency | Version | Purpose |
+|---|---|---|
+| OS | Windows 10 / 11 (64-bit) | Operating System |
+| Node.js | 18+ | Electron Shell Runtime |
+| Python | 3.9+ | Audio Backend / Rest API |
+| `sounddevice` | 0.4.6+ | PortAudio I/O bindings |
+| `numpy` | 1.24+ | DSP matrix processing |
+| `soundfile` | 0.12+ | Soundboard file decoding |
 
-> **Note:** The Beatrice VST3 library (`beatrice_2.0.0-rc.2.vst3`) is a **macOS-only** native binary. Windows/Linux are not supported in this release.
+> **Note:** The core Beatrice library (`beatrice_2.0.0-rc.2.dll`) has been wrapper-compiled specifically for Windows architectures and is included natively. No external VST hosts are required to run this standalone application.
 
 ---
 
@@ -83,42 +85,26 @@
 <img width="2912" height="1704" alt="image" src="https://github.com/user-attachments/assets/78250418-db4b-47b8-93c1-3711f8faf211" />
 <img width="2910" height="1708" alt="image" src="https://github.com/user-attachments/assets/f5b03f93-618a-4ba8-b723-e241bf6b0d35" />
 
-
-
 ---
 
-## Quick Start
+## Quick Start (Developer Setup)
 
+```powershell
+# 1. Clone the repository
+git clone https://github.com/satiricalguru/BeatriceVST-voicechanger.git
+cd BeatriceVST-voicechanger
 
-```bash
-# Clone
-git clone https://github.com/satiricalguru/beatrice-voicechanger.git
-cd beatrice-voicechanger
-
-# Install dependencies
+# 2. Install Python dependencies
 pip install -r requirements.txt
+
+# 3. Install Node.js dependencies
 npm install
 
-# Launch
+# 4. Launch the application
 npm start
 ```
 
-> Voice conversion activates on launch. Toggle the power button in the sidebar to switch between **LIVE** (converting) and **BYPASSED** (raw mic).
-
----
-
-## Requirements
-
-| Dependency | Version | Purpose |
-|---|---|---|
-| macOS | 12 Monterey+ | Apple Silicon or Intel |
-| Node.js | 18+ | Electron shell |
-| Python | 3.9+ | Audio backend |
-| `sounddevice` | 0.4.6+ | PortAudio I/O |
-| `numpy` | 1.24+ | DSP math |
-| `soundfile` | 0.12+ | Soundboard audio decoding |
-
-> **Note:** The Beatrice VST3 library is a **macOS-only** signed binary. Windows/Linux are not supported.
+> **Usage:** Voice conversion activates on launch. Toggle the **LIVE** power button in the sidebar to switch between **LIVE** (converting) and **BYPASSED** (raw mic feed).
 
 ---
 
@@ -127,9 +113,9 @@ npm start
 | Sidebar Control | Description |
 |---|---|
 | **Power Button** | Toggle LIVE (converting) / BYPASSED (raw mic) |
-| **Input Microphone** | Select your mic |
+| **Input Microphone** | Select your recording device |
 | **Output Device** | Select playback destination |
-| **Hear Yourself** | Route output to a monitor device |
+| **Hear Yourself** | Route output to a local monitor device (e.g. headphones) |
 | **Noise Gate** | Threshold below which input is silenced |
 | **Pitch Shift** | Shift pitch ±12 semitones |
 | **Formant Shift** | Shift vocal tract formants |
@@ -146,7 +132,7 @@ Upload audio files and trigger them instantly:
 3. **Click again** (pause icon) to stop playback
 4. **Hover** a tile for rename and delete options
 
-When **Hear Yourself** is enabled, soundboard audio also plays through your monitor device.
+When **Hear Yourself** is enabled, soundboard audio also routes through your monitor device.
 
 ---
 
@@ -160,23 +146,24 @@ When **Hear Yourself** is enabled, soundboard audio also plays through your moni
 │   │ Voice Grid   │  │ Soundboard          │  │
 │   │ (100 JVS)    │  │ (upload → play)     │  │
 │   └──────────────┘  └─────────────────────┘  │
+│   │ Custom title window controls (WCO)    │  │
 └────────────────────┬─────────────────────────┘
                      │ HTTP REST (127.0.0.1:5005)
                      ▼
-┌──────────────────────────────────────────────┐
-│         Python Audio Backend                 │
-│         beatrice_audio.py                    │
-│   ┌──────────────────────────────────────┐   │
-│   │ PortAudio I/O (sounddevice)          │   │
-│   │ Beatrice VST3 ctypes wrapper         │   │
-│   │ Phone → Pitch → Waveform pipeline    │   │
-│   │ Soundboard playback (soundfile)      │   │
-│   └──────────────────────────────────────┘   │
-└────────────────────┬─────────────────────────┘
+ ┌─────────────────────────────────────────────┐
+ │         Python Audio Backend                │
+ │         beatrice_audio.py                   │
+ │   ┌──────────────────────────────────────┐  │
+ │   │ PortAudio I/O (sounddevice)          │  │
+ │   │ Beatrice DLL ctypes wrapper          │  │
+ │   │ Phone → Pitch → Waveform pipeline    │  │
+ │   │ Soundboard playback (soundfile)      │  │
+ │   └──────────────────────────────────────┘  │
+ └───────────────────┬─────────────────────────┘
                      │ ctypes CDLL
                      ▼
 ┌──────────────────────────────────────────────┐
-│     Beatrice 2.0.0-rc.2 VST3 Library         │
+│     Beatrice 2.0.0-rc.2.dll (Wrapper)        │
 │     + beatrice_paraphernalia_jvs/            │
 │       (model weights & speaker embeddings)   │
 └──────────────────────────────────────────────┘
@@ -187,30 +174,36 @@ When **Hear Yourself** is enabled, soundboard audio also plays through your moni
 ## Project Structure
 
 ```
-beatrice-voicechanger/
+BeatriceVST-voicechanger/
 ├── main.js                    # Electron main process
 ├── renderer.js                # Frontend logic (voices, soundboard, settings)
 ├── index.html                 # UI layout
 ├── index.css                  # Design system (6 themes, light/dark)
 ├── beatrice_audio.py          # Python audio backend + HTTP API
-├── package.json               # Node config
+├── package.json               # Node config & build targets
 ├── requirements.txt           # Python dependencies
 ├── icon.png                   # App icon
 ├── soundboard_audio/          # Uploaded soundboard files (gitignored)
-├── beatrice_2.0.0-rc.2.vst3/ # Native Beatrice DSP library
+├── build_dll/                 # Source code for wrapper library DLL
+├── beatrice_2.0.0-rc.2.vst3/  # Beatrice VST3 directory
+│   └── Contents/
+│       └── x86_64-win/
+│           └── beatrice_2.0.0-rc.2.dll  # Native Windows compiled DLL wrapper
 └── beatrice_paraphernalia_jvs/
     ├── *.bin                  # Model weights
     ├── speaker_embeddings.bin # 101 speaker profiles
     └── noimage.png            # Placeholder
 ```
 
-## Credits & Acknowledgements
+## Packaging for Windows (Executable Installer)
 
-- **Beatrice DSP engine** — [prj-beatrice/beatrice-vst](https://github.com/prj-beatrice/beatrice-vst)
-- **Voice Changer UI/backend** — Inspired by [w-okada/voice-changer](https://github.com/w-okada/voice-changer)
-- **JVS Corpus** — [Shinnosuke Takamichi, UTokyo](https://sites.google.com/site/shinnosuketakamichi/research-topics/jvs_corpus)
-  - Non-commercial use only. See `LICENSE.txt` and `LICENSES_BUNDLED.txt`.
-- **Developed by Satirical Guru, Claude & Antigravity**.
+To compile the application into a standalone installer (`.exe`) and portable folder:
+```powershell
+npm run dist:win
+```
+This will compile and generate the output inside the `dist/` directory:
+- `dist/Beatrice Voice Changer Setup 1.0.0.exe` (NSIS Installer)
+- `dist/Beatrice Voice Changer-1.0.0-win.zip` (Portable Package)
 
 ---
 
@@ -227,6 +220,16 @@ The Python backend exposes a REST API on `127.0.0.1:5005`:
 | `/stop_sound` | GET | Stop current soundboard playback |
 
 **`/set_config` parameters:** `bypass`, `speaker_index`, `pitch_shift`, `formant_shift`, `volume`, `gate_threshold`, `input_device_id`, `output_device_id`, `monitor_device_id`, `hear_yourself`
+
+---
+
+## Credits & Acknowledgements
+
+- **Beatrice DSP engine** — [prj-beatrice/beatrice-vst](https://github.com/prj-beatrice/beatrice-vst)
+- **Voice Changer UI/backend** — Inspired by [w-okada/voice-changer](https://github.com/w-okada/voice-changer)
+- **JVS Corpus** — [Shinnosuke Takamichi, UTokyo](https://sites.google.com/site/shinnosuketakamichi/research-topics/jvs_corpus)
+  - Non-commercial use only. See `LICENSE.txt` and `LICENSES_BUNDLED.txt`.
+- **Developed by Satirical Guru, Claude & Antigravity**.
 
 ---
 

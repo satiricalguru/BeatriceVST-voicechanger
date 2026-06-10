@@ -12,10 +12,21 @@
   <link rel="stylesheet" href="index.css">
 </head>
 <body>
-  <!-- macOS TITLEBAR -->
+  <!-- macOS/Windows TITLEBAR -->
   <div class="window-titlebar" role="presentation" aria-hidden="true">
     <div class="traffic-lights-spacer" aria-hidden="true"></div>
     <div class="window-title">PROJECT BEATRICE · AI VOICE CHANGER</div>
+    <div class="window-controls" id="window-controls">
+      <button class="win-btn" id="win-min" aria-label="Minimize">
+        <svg viewBox="0 0 10 1"><rect width="10" height="1" fill="currentColor"/></svg>
+      </button>
+      <button class="win-btn" id="win-max" aria-label="Maximize">
+        <svg viewBox="0 0 10 10" fill="none"><rect x="0.5" y="0.5" width="9" height="9" stroke="currentColor" stroke-width="1"/></svg>
+      </button>
+      <button class="win-btn win-close" id="win-close" aria-label="Close">
+        <svg viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.2"/></svg>
+      </button>
+    </div>
   </div>
 
   <div class="app-container">

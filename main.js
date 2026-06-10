@@ -1,6 +1,6 @@
 'use strict';
 
-const { app, BrowserWindow, nativeImage } = require('electron');
+const { app, BrowserWindow, nativeImage, ipcMain } = require('electron');
 const { spawn }              = require('child_process');
 const path                   = require('path');
 
@@ -17,9 +17,9 @@ function createWindow() {
     minHeight: 620,
     icon: ICON_PATH,
     title: 'Project Beatrice – AI Voice Changer',
-    // macOS: hide the default titlebar, show traffic lights at correct coords
-    titleBarStyle: 'hiddenInset',
-    trafficLightPosition: { x: 14, y: 13 },
+    // macOS/Windows: hide default titlebar, place windows control overlay properly
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
+    ...(process.platform === 'darwin' ? { trafficLightPosition: { x: 14, y: 13 } } : {}),
     backgroundColor: '#05050b',
     show: false,           // avoid white flash on load
     webPreferences: {
@@ -53,7 +53,7 @@ function startBackend() {
   const scriptPath = path.join(appDir, 'beatrice_audio.py');
   console.log('[Beatrice] Spawning Python audio backend:', scriptPath);
 
-  let spawnCmd = 'python3';
+  let spawnCmd = process.platform === 'win32' ? 'python' : 'python3';
   let spawnArgs = ['-u', scriptPath];
 
   if (process.platform === 'darwin') {
@@ -113,4 +113,23 @@ app.on('will-quit', () => {
     pythonProcess.kill('SIGTERM');
     pythonProcess = null;
   }
+});
+
+// Window control IPC handlers
+ipcMain.on('win-minimize', () => {
+  if (mainWindow) mainWindow.minimize();
+});
+
+ipcMain.on('win-maximize', () => {
+  if (mainWindow) {
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize();
+    } else {
+      mainWindow.maximize();
+    }
+  }
+});
+
+ipcMain.on('win-close', () => {
+  if (mainWindow) mainWindow.close();
 });

@@ -12,7 +12,8 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --enable-logging",
-    "dist": "electron-builder --mac --publish never"
+    "dist": "electron-builder --mac --publish never",
+    "dist:win": "electron-builder --win --publish never"
   },
   "keywords": [
     "voice-changer",
@@ -85,6 +86,19 @@
       "darkModeSupport": true,
       "hardenedRuntime": false,
       "gatekeeperAssess": false
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "zip"
+      ],
+      "icon": "icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
     },
     "dmg": {
       "title": "Beatrice Voice Changer",
