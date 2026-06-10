@@ -462,9 +462,12 @@ def run_http_server():
 # Setup Beatrice VST3 ctypes wrapper
 # Resolve all paths relative to this script's directory so the project
 # works on any machine regardless of where it is cloned or extracted.
-_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-if os.path.basename(_BASE_DIR) == "app.asar.unpacked":
-    _BASE_DIR = os.path.dirname(_BASE_DIR)
+if getattr(sys, 'frozen', False):
+    _BASE_DIR = os.path.dirname(sys.executable)
+else:
+    _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    if os.path.basename(_BASE_DIR) == "app.asar.unpacked":
+        _BASE_DIR = os.path.dirname(_BASE_DIR)
 if sys.platform == 'win32':
     lib_path = os.path.join(
         _BASE_DIR,

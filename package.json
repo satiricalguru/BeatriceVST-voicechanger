@@ -39,6 +39,7 @@
     },
     "asarUnpack": [
       "beatrice_audio.py",
+      "beatrice_audio.exe",
       "beatrice_loader.py",
       "requirements.txt",
       "beatrice_paraphernalia_jvs/**/*",
@@ -50,6 +51,7 @@
       "index.html",
       "index.css",
       "beatrice_audio.py",
+      "beatrice_audio.exe",
       "beatrice_loader.py",
       "requirements.txt",
       "icon.png",
