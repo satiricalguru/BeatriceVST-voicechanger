@@ -1,0 +1,105 @@
+[model]
+version = "2.0.0-rc.0"
+name = "old tts"
+description = """
+trained by hecko on the rainbow passage https://dailycues.com/learn/iqpedia/pages/rainbow-passage/
+synthesized 4 times: normal, ~octave lower, ~octave higher, ~double speed
+speak n spell data: https://sampleswap.org/filebrowser-new.php?d=VOCALS+and+SPOKEN+WORD%2FSpeak+and+Spell%2F
+image source: https://commons.wikimedia.org/wiki/File:Noun_Robot_1749584.svg
+"""
+
+[voice.0]
+name = "adult male 1"
+description = """
+also known as bonzi buddy
+"""
+average_pitch = 56.375
+
+[voice.0.portrait]
+path = "Noun_Robot_1749584.png"
+description = """
+"""
+
+[voice.1]
+name = "espeak"
+description = """
+pohovzo kohovzo
+"""
+average_pitch = 43.75
+
+[voice.1.portrait]
+path = "Noun_Robot_1749584.png"
+description = """
+"""
+
+[voice.2]
+name = "mary"
+description = """
+woman!
+"""
+average_pitch = 53.875
+
+[voice.2.portrait]
+path = "Noun_Robot_1749584.png"
+description = """
+"""
+
+[voice.3]
+name = "mike"
+description = """
+man!
+"""
+average_pitch = 49.5
+
+[voice.3.portrait]
+path = "Noun_Robot_1749584.png"
+description = """
+"""
+
+[voice.4]
+name = "paul"
+description = """
+aeiou
+"""
+average_pitch = 50.5
+
+[voice.4.portrait]
+path = "Noun_Robot_1749584.png"
+description = """
+"""
+
+[voice.5]
+name = "sam"
+description = """
+certified roflcopter owner
+"""
+average_pitch = 47.625
+
+[voice.5.portrait]
+path = "Noun_Robot_1749584.png"
+description = """
+"""
+
+[voice.6]
+name = "sam commodore"
+description = """
+software automatic mouth, v1 ultrakill
+"""
+average_pitch = 58.625
+
+[voice.6.portrait]
+path = "Noun_Robot_1749584.png"
+description = """
+"""
+
+[voice.7]
+name = "speak n spell"
+description = """
+here is your score
+"""
+average_pitch = 47.125
+
+[voice.7.portrait]
+path = "Noun_Robot_1749584.png"
+description = """
+"""

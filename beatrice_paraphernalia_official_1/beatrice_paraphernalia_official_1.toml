@@ -1,0 +1,140 @@
+[model]
+version = "2.0.0-rc.0"
+name = "Beatrice 2.0.0-rc.0 公式モデル 1"
+description = """
+Beatrice 2.0.0-rc.0 公式モデル 1 です。
+
+Beatrice | 軽量・低遅延AIボイスチェンジャー
+https://prj-beatrice.com
+"""
+
+[voice.0]
+name = "つくよみちゃん (UTAU)"
+description = """
+つくよみちゃんは、夢前黎氏がプロデュースするバーチャルキャラクターです。
+
+---
+
+本モデルの音声合成には、フリー素材キャラクター「つくよみちゃん」 (© Rei Yumesaki) が無料公開している音声データを使用しています。
+
+■つくよみちゃんUTAU音源 (CV.夢前黎)
+https://tyc.rei-yumesaki.net/material/utau/
+
+■つくよみちゃんコーパス (CV.夢前黎)
+https://tyc.rei-yumesaki.net/material/corpus/
+
+---
+
+本モデルを用いてつくよみちゃんの声質へ変換した音声を以下の目的で利用することを禁じます。
+・人を批判・攻撃すること。 (「批判・攻撃」の定義は、つくよみちゃんキャラクターライセンスに準じます)
+・特定の政治的立場・宗教・思想への賛同または反対を呼びかけること。
+・刺激の強い表現をゾーニングなしで公開すること。
+・他者に対して二次利用（素材としての利用）を許可する形で公開すること。
+
+キャラクターを利用する際はつくよみちゃんキャラクターライセンスを確認してください。
+https://tyc.rei-yumesaki.net/about/terms/
+
+変換音声をつくよみちゃんの声として利用しない場合、クレジット表記は不要です。
+"""
+average_pitch = 65.625
+
+[voice.0.portrait]
+path = "tsukuyomichan.png"
+description = """
+■イラスト: えみゃコーラ様
+https://tyc.rei-yumesaki.net/material/illust/
+
+■つくよみちゃん公式サイト
+https://tyc.rei-yumesaki.net
+"""
+
+[voice.1]
+name = "つくよみちゃん (コーパス)"
+description = """
+つくよみちゃんは、夢前黎氏がプロデュースするバーチャルキャラクターです。
+
+---
+
+本モデルの音声合成には、フリー素材キャラクター「つくよみちゃん」 (© Rei Yumesaki) が無料公開している音声データを使用しています。
+
+■つくよみちゃんコーパス (CV.夢前黎)
+https://tyc.rei-yumesaki.net/material/corpus/
+
+■つくよみちゃんUTAU音源 (CV.夢前黎)
+https://tyc.rei-yumesaki.net/material/utau/
+
+---
+
+本モデルを用いてつくよみちゃんの声質へ変換した音声を以下の目的で利用することを禁じます。
+・人を批判・攻撃すること。 (「批判・攻撃」の定義は、つくよみちゃんキャラクターライセンスに準じます)
+・特定の政治的立場・宗教・思想への賛同または反対を呼びかけること。
+・刺激の強い表現をゾーニングなしで公開すること。
+・他者に対して二次利用（素材としての利用）を許可する形で公開すること。
+
+キャラクターを利用する際はつくよみちゃんキャラクターライセンスを確認してください。
+https://tyc.rei-yumesaki.net/about/terms/
+
+変換音声をつくよみちゃんの声として利用しない場合、クレジット表記は不要です。
+"""
+average_pitch = 63.5
+
+[voice.1.portrait]
+path = "tsukuyomichan.png"
+description = """
+■イラスト: えみゃコーラ様
+https://tyc.rei-yumesaki.net/material/illust/
+
+■つくよみちゃん公式サイト
+https://tyc.rei-yumesaki.net
+"""
+
+[voice.2]
+name = "刻鳴時雨"
+description = """
+刻鳴時雨は、瓶詰め氏が管理する音声合成キャラクターです。(CV: 丸ころ)
+
+---
+
+キャラクターを利用する際は、刻鳴時雨の利用規約を確認してください。
+https://bindumechan.wixsite.com/shigure222/term-of-use
+
+変換音声を刻鳴時雨の声として利用しない場合、クレジット表示は不要です。
+
+本モデルの学習には「刻鳴時雨ITAコーパス読み上げ音声素材」を使用しています。
+https://booth.pm/ja/items/3640133
+
+---
+
+刻鳴時雨の猫ちぐら
+https://bindumechan.wixsite.com/shigure222
+"""
+average_pitch = 54.0
+
+[voice.2.portrait]
+path = "tokinashigure.png"
+description = """
+立ち絵: 彩瀬
+https://bowlroll.net/file/299103
+"""
+
+[voice.3]
+name = "OLUNE"
+description = """
+OLUNE は、Leo Carvalho 氏によって製作されたキャラクターであり、自由に使用することができます。
+
+---
+
+本モデルの学習には、Leo Carvalho 氏から個別に提供を受けた音声データを使用しています。
+
+---
+
+olune site
+https://olunered.carrd.co/
+"""
+average_pitch = 50.875
+
+[voice.3.portrait]
+path = "olune.png"
+description = """
+Illustrator: @Thor.Vg8
+"""

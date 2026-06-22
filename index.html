@@ -187,6 +187,15 @@
           <input type="search" placeholder="Search 100 voices..." class="search-input" id="search-box" aria-label="Search voices" autocomplete="off" spellcheck="false">
           <span class="search-count mono" id="search-count" aria-live="polite"></span>
         </div>
+        <div class="select-container" style="margin-bottom: 0; min-width: 210px; -webkit-app-region: no-drag;">
+          <div class="select-wrapper">
+            <select id="model-select" class="dropdown-select" aria-label="Select voice model">
+              <option value="jvs">JVS Corpus (100 Voices)</option>
+              <option value="official_1">Official Model 1</option>
+              <option value="old_tts">Classic Old TTS (8 Voices)</option>
+            </select>
+          </div>
+        </div>
         <div class="status-panel" role="status">
           <div class="status-item" id="stream-status-item">
             <span class="status-dot" id="stream-dot"></span>

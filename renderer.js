@@ -16,6 +16,13 @@ const STORAGE_KEY_MODE  = 'beatrice_color_mode';
 const STORAGE_KEY_SB    = 'beatrice_soundboard';
 const STORAGE_KEY_LANG  = 'beatrice_language';
 
+const AVAILABLE_MODELS = {
+  jvs: { name: "JVS Corpus (100 Voices)", folder: "beatrice_paraphernalia_jvs", toml: "beatrice_paraphernalia_jvs.toml" },
+  official_1: { name: "Official Model 1", folder: "beatrice_paraphernalia_official_1", toml: "beatrice_paraphernalia_official_1.toml" },
+  old_tts: { name: "Classic Old TTS (8 Voices)", folder: "beatrice_paraphernalia_old_tts", toml: "beatrice_paraphernalia_old_tts.toml" }
+};
+let currentModelKey = localStorage.getItem('beatrice_current_model') || 'jvs';
+
 // When packaged, __dirname contains 'app.asar' (the virtual archive path).
 // Files in extraResources land at process.resourcesPath (Contents/Resources/).
 // Use that as the base so TOML and soundboard paths resolve to real disk paths.
@@ -467,11 +474,40 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 // ════════════════════════════════════════════════════════════
 // TOML SPEAKER LOADER
 // ════════════════════════════════════════════════════════════
+function getSpeakerTagsAndId(speaker, modelKey) {
+  let id = '';
+  let tag = 'Voice';
+  
+  if (modelKey === 'jvs') {
+    id = `JVS-${String(speaker.index + 1).padStart(3, '0')}`;
+    tag = extractElement(speaker.description);
+  } else if (modelKey === 'official_1') {
+    id = `OFF-${speaker.index + 1}`;
+    tag = 'Female';
+  } else if (modelKey === 'old_tts') {
+    id = `RETRO-${speaker.index + 1}`;
+    const name = speaker.name.toLowerCase();
+    if (name.includes('mary')) {
+      tag = 'Female';
+    } else if (name.includes('mike') || name.includes('paul') || name.includes('sam') || name.includes('male')) {
+      tag = 'Male';
+    } else {
+      tag = 'Hardware';
+    }
+  } else {
+    id = `SPK-${speaker.index + 1}`;
+    tag = 'Voice';
+  }
+  
+  return { id, tag };
+}
+
 function loadSpeakerData() {
   try {
-    const tomlPath = path.join(APP_BASE, 'beatrice_paraphernalia_jvs', 'beatrice_paraphernalia_jvs.toml');
+    const modelCfg = AVAILABLE_MODELS[currentModelKey] || AVAILABLE_MODELS.jvs;
+    const tomlPath = path.join(APP_BASE, modelCfg.folder, modelCfg.toml);
     if (!fs.existsSync(tomlPath)) {
-      showSpeakerError('Model config file not found. Please check beatrice_paraphernalia_jvs/');
+      showSpeakerError(`Model config file not found. Please check ${modelCfg.folder}/`);
       return;
     }
     const tomlText = fs.readFileSync(tomlPath, 'utf8');
@@ -484,6 +520,11 @@ function loadSpeakerData() {
 
     renderSpeakers(speakerProfiles);
     updateSearchCount(speakerProfiles.length, speakerProfiles.length);
+    
+    // Update search box placeholder
+    if (searchBox) {
+      searchBox.placeholder = `Search ${speakerProfiles.length} voices...`;
+    }
   } catch (err) {
     console.error('[Beatrice] Error loading speaker config:', err);
     showSpeakerError(`Failed to load speakers: ${err.message}`);
@@ -579,9 +620,8 @@ function renderSpeakers(profiles) {
   const frag = document.createDocumentFragment();
 
   profiles.forEach((speaker, i) => {
-    const elemStr = extractElement(speaker.description);
-    const hue     = elementHue(elemStr);
-    const jvsId   = `JVS-${String(speaker.index + 1).padStart(3, '0')}`;
+    const spkInfo = getSpeakerTagsAndId(speaker, currentModelKey);
+    const hue     = elementHue(spkInfo.tag);
     const isActive = speaker.index === activeSpeakerIndex;
     const firstLine = speaker.description.split('\n').find(l => l.trim() && !l.trim().startsWith('Element:')) || '';
 
@@ -596,8 +636,8 @@ function renderSpeakers(profiles) {
     card.innerHTML = `
       <div class="speaker-elem-tag"
            style="background:hsl(${hue},60%,50%,var(--elem-bg-opacity));color:hsl(${hue},80%,var(--elem-text-lightness));border-color:hsl(${hue},60%,60%,var(--elem-border-opacity));"
-           aria-hidden="true">${elemStr}</div>
-      <div class="speaker-id">${jvsId}</div>
+           aria-hidden="true">${spkInfo.tag}</div>
+      <div class="speaker-id">${spkInfo.id}</div>
       <div class="speaker-name">${speaker.name}</div>
       <div class="speaker-desc">${firstLine.trim()}</div>
       <div class="speaker-pitch">
@@ -737,11 +777,11 @@ searchBox.addEventListener('input', () => {
       return;
     }
     const filtered = speakerProfiles.filter(s => {
-      const id = `jvs-${String(s.index + 1).padStart(3, '0')}`;
+      const spkInfo = getSpeakerTagsAndId(s, currentModelKey);
       return (
         s.name.toLowerCase().includes(query) ||
         s.description.toLowerCase().includes(query) ||
-        id.includes(query)
+        spkInfo.id.toLowerCase().includes(query)
       );
     });
     renderSpeakers(filtered);
@@ -873,7 +913,10 @@ async function pollBackendStatus() {
         }
         devicesLoaded = true;
       }
-      // If ok===false, devicesLoaded stays false and we retry next poll cycle
+    }
+
+    if (status.model_name && status.model_name !== currentModelKey) {
+      setBackendConfig({ model_name: currentModelKey, speaker_index: activeSpeakerIndex || 0 });
     }
 
     const inW  = Math.min(100, (status.input_meter  || 0) * 350);
@@ -902,6 +945,20 @@ loadSavedLanguage();
 loadSoundboard();
 renderSoundboardMain();
 loadSpeakerData();
+
+const modelSelect = document.getElementById('model-select');
+if (modelSelect) {
+  modelSelect.value = currentModelKey;
+  modelSelect.addEventListener('change', () => {
+    currentModelKey = modelSelect.value;
+    localStorage.setItem('beatrice_current_model', currentModelKey);
+    if (searchBox) searchBox.value = '';
+    loadSpeakerData();
+    selectSpeaker(0);
+    setBackendConfig({ model_name: currentModelKey, speaker_index: 0 });
+  });
+}
+
 applyBypassUI(voiceChangerBypass);
 setInterval(pollBackendStatus, 250);
 

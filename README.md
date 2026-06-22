@@ -11,7 +11,7 @@
 
 <img src="beatrice_paraphernalia_jvs/noimage.png" width="140" alt="Beatrice Logo" />
 
-**Morph your voice in real-time** using 100 AI speakers from the JVS corpus — powered by the Beatrice 2.0.0-rc.2 DSP engine with sub-10ms latency. Optimized and wrapper-compiled specifically for Windows platforms.
+**Morph your voice in real-time** using multiple AI voice models — JVS Corpus (100 voices), Official Model 1 (Tsukuyomichan / Tokinashigure / OLUNE), and Classic Old TTS (8 Retro voices) — powered by the Beatrice 2.0.0-rc.2 DSP engine with sub-10ms latency. Optimized and wrapper-compiled specifically for Windows platforms.
 
 > **🍎 macOS Version:** If you want to download or build the macOS version, check out the [Beatrice macOS Repository](https://github.com/satiricalguru/Beatrice-voicechanger.git).
 
@@ -26,7 +26,7 @@
 <td width="50%">
 
 ### 🎤 Voice Conversion
-- **100 target voices** — each mapped to a chemical element
+- **Multiple Compatible Voice Models** — JVS Corpus (100 element-mapped voices), Official Model 1 (Tsukuyomichan, Tokinashigure, OLUNE), and Classic Old TTS (8 retro voices)
 - Real-time DSP pipeline at **16 kHz / 10ms latency**
 - Pitch shift (−12 to +12 semitones)
 - Formant shift (−1.5 to +1.5)
@@ -110,6 +110,24 @@ npm start
 
 ---
 
+## How to Use & Audio Routing Guide
+
+To route your morphed voice to third-party applications (like Discord, Games, or OBS), follow these steps:
+
+1. **Set Input Microphone**: Select your physical input microphone (e.g., built-in microphone, USB headset mic) from the *Input Microphone* dropdown in the sidebar.
+2. **Setup a Virtual Microphone**:
+   - You will need a virtual audio loopback driver to act as a bridge between the voice changer and other applications.
+   - **Windows**: Download and install a virtual loopback device such as [VB-Cable](https://vb-audio.com/Cable/).
+3. **Set Output Device**: In the app, select the virtual microphone input (e.g., `CABLE Input`) as your *Output Device*.
+4. **Target Application Configuration**: In the target application (e.g., Discord, OBS, Zoom), select the virtual microphone output (e.g., `CABLE Output`) as its *Input Device*.
+5. **Testing (Hear Yourself)**:
+   - Toggle the *Hear Yourself* switch to **ON** if you want to test and monitor your morphed voice.
+   - Select your physical monitoring/hearing device (e.g., your headphones or speakers) from the dropdown list next to it.
+6. **Optimize Voice Quality (Noise Gate)**:
+   - Set the *Noise Gate* threshold to its lowest value (`0.000`) for the best continuous and natural voice conversion without quiet parts getting cut off.
+
+---
+
 ## Controls
 
 | Sidebar Control | Description |
@@ -167,6 +185,8 @@ When **Hear Yourself** is enabled, soundboard audio also routes through your mon
 ┌──────────────────────────────────────────────┐
 │     Beatrice 2.0.0-rc.2.dll (Wrapper)        │
 │     + beatrice_paraphernalia_jvs/            │
+│     + beatrice_paraphernalia_official_1/     │
+│     + beatrice_paraphernalia_old_tts/        │
 │       (model weights & speaker embeddings)   │
 └──────────────────────────────────────────────┘
 ```
@@ -191,10 +211,18 @@ BeatriceVST-voicechanger/
 │   └── Contents/
 │       └── x86_64-win/
 │           └── beatrice_2.0.0-rc.2.dll  # Native Windows compiled DLL wrapper
-└── beatrice_paraphernalia_jvs/
-    ├── *.bin                  # Model weights
-    ├── speaker_embeddings.bin # 101 speaker profiles
-    └── noimage.png            # Placeholder
+├── beatrice_paraphernalia_jvs/        # JVS Corpus model directory
+│   ├── *.bin                          # Model weights
+│   ├── speaker_embeddings.bin         # 101 speaker profiles
+│   └── noimage.png                    # Placeholder
+├── beatrice_paraphernalia_official_1/ # Official Model 1 directory
+│   ├── *.bin                          # Model weights
+│   ├── speaker_embeddings.bin         # 4 speaker profiles
+│   └── *.png                          # Portraits
+└── beatrice_paraphernalia_old_tts/    # Classic Old TTS model directory
+    ├── *.bin                          # Model weights
+    ├── speaker_embeddings.bin         # 8 speaker profiles
+    └── *.png                          # Portrait icon
 ```
 
 ## Packaging for Windows
@@ -231,7 +259,7 @@ The Python backend exposes a REST API on `127.0.0.1:5005`:
 | `/play_sound?file_path=...&hear_yourself=...` | GET | Play a soundboard file |
 | `/stop_sound` | GET | Stop current soundboard playback |
 
-**`/set_config` parameters:** `bypass`, `speaker_index`, `pitch_shift`, `formant_shift`, `volume`, `gate_threshold`, `input_device_id`, `output_device_id`, `monitor_device_id`, `hear_yourself`
+**`/set_config` parameters:** `bypass`, `speaker_index`, `pitch_shift`, `formant_shift`, `volume`, `gate_threshold`, `input_device_id`, `output_device_id`, `monitor_device_id`, `hear_yourself`, `model_name`
 
 ---
 
@@ -241,6 +269,8 @@ The Python backend exposes a REST API on `127.0.0.1:5005`:
 - **Voice Changer UI/backend** — Inspired by [w-okada/voice-changer](https://github.com/w-okada/voice-changer)
 - **JVS Corpus** — [Shinnosuke Takamichi, UTokyo](https://sites.google.com/site/shinnosuketakamichi/research-topics/jvs_corpus)
   - Non-commercial use only. See `LICENSE.txt` and `LICENSES_BUNDLED.txt`.
+- **Official Model 1 Voices** — Tsukuyomichan (夢前黎), Tokinashigure (丸ころ), OLUNE (Leo Carvalho).
+- **Classic Old TTS Models** — Trained by hecko.
 - **Developed by Satirical Guru, Claude & Antigravity**.
 
 ---
