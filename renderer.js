@@ -525,6 +525,20 @@ function loadSpeakerData() {
     if (searchBox) {
       searchBox.placeholder = `Search ${speakerProfiles.length} voices...`;
     }
+    
+    // Update voices description text based on model selection
+    const descEl = document.querySelector('[data-i18n="voices_desc"]');
+    if (descEl) {
+      if (currentModelKey === 'jvs') {
+        descEl.textContent = 'Select a JVS speaker to morph your voice. Each speaker maps to a unique chemical element.';
+      } else if (currentModelKey === 'official_1') {
+        descEl.textContent = 'Select an official Beatrice voice model to morph your voice.';
+      } else if (currentModelKey === 'old_tts') {
+        descEl.textContent = 'Select a classic old synth voice to morph your voice.';
+      } else {
+        descEl.textContent = 'Select a target speaker to morph your voice.';
+      }
+    }
   } catch (err) {
     console.error('[Beatrice] Error loading speaker config:', err);
     showSpeakerError(`Failed to load speakers: ${err.message}`);
@@ -917,6 +931,16 @@ async function pollBackendStatus() {
 
     if (status.model_name && status.model_name !== currentModelKey) {
       setBackendConfig({ model_name: currentModelKey, speaker_index: activeSpeakerIndex || 0 });
+    } else if (status.model_name && status.model_name === currentModelKey && activeSpeakerIndex === null) {
+      if (status.speaker_index != null && status.speaker_index >= 0) {
+        activeSpeakerIndex = status.speaker_index;
+        const card = document.getElementById(`speaker-card-${activeSpeakerIndex}`);
+        if (card) {
+          card.classList.add('active');
+          card.setAttribute('aria-selected', 'true');
+          card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+      }
     }
 
     const inW  = Math.min(100, (status.input_meter  || 0) * 350);
