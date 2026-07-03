@@ -111,7 +111,7 @@
 </p>
 
 <p align="center">
-  <img alt="Library — Featured presets and Wikimedia sound effects (Japanese UI)" src="assets/screenshot_library.png" width="100%"/>
+ <img width="1919" height="1032" alt="image" src="https://github.com/user-attachments/assets/8d2268e8-5ef6-411c-9140-a1998f450953" />
   <br/><sub>📚 <b>Library</b> — 100+ curated sound presets with multilingual UI support</sub>
 </p>
 
