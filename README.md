@@ -116,7 +116,7 @@
 </p>
 
 <p align="center">
-  <img width="2904" height="1606" alt="image" src="https://github.com/user-attachments/assets/951329b7-41be-4ea1-8d3a-66ef4b38b330" />
+  <img width="1919" height="1025" alt="image" src="https://github.com/user-attachments/assets/efb668c8-12d3-421b-b3fb-47f4d4e360cd" />
   <br/><sub>⚙️ <b>Settings</b> — 6 handcrafted themes, light/dark mode, and 3 languages (Chinese shown)</sub>
 </p>
 
