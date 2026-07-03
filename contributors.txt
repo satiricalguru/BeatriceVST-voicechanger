@@ -1,0 +1,61 @@
+Beatrice Voice Changer Contributors & Third-Party Software
+
+This project contains and builds upon the following software, libraries, and web-based resources:
+
+=== Bundled Software & VST Components ===
+
+1. VST SDK - pluginterfaces, base, public_sdk
+   - License: MIT License
+   - Source: https://github.com/steinbergmedia/vst3sdk
+
+2. VST SDK - VSTGUI
+   - License: BSD-3-Clause License
+   - Source: https://github.com/steinbergmedia/vstgui
+
+3. PocketFFT
+   - License: BSD-3-Clause License
+   - Source: https://gitlab.mpcdf.mpg.de/mtr/pocketfft
+
+4. fmath
+   - License: BSD-3-Clause License
+   - Source: https://github.com/herumi/fmath
+
+5. toml11
+   - License: MIT License
+   - Source: https://github.com/ToruNiina/toml11
+
+6. SIMD Everywhere
+   - License: MIT License
+   - Source: https://github.com/simd-everywhere/simde
+
+=== Web APIs & Resources Used ===
+
+7. Freesound API
+   - Purpose: Used for real-time online sound library searching and downloads.
+   - License: Various Creative Commons Licenses (CC0, CC-BY, CC-BY-NC).
+   - Source: https://freesound.org
+
+8. MyInstants API
+   - Purpose: Used to search and download instant buttons sound effects.
+   - License: Under respective creator rights.
+   - Source: https://www.myinstants.com
+
+9. Wikimedia Commons API
+   - Purpose: Used for royalty-free audio search and previews in the library tab.
+   - License: Creative Commons (CC-BY, CC-BY-SA, Public Domain).
+   - Source: https://commons.wikimedia.org
+
+10. Loremflickr Image API
+    - Purpose: Used to fetch random soundboard category cover thumbnails.
+    - License: Creative Commons (CC-BY).
+    - Source: https://loremflickr.com
+
+11. Lucide Icons & SVG Repo
+    - Purpose: Premium modern vector icons used in UI navigation, controls, and soundboard grids.
+    - License: MIT License.
+    - Source: https://lucide.dev
+
+=== Terms & Trademarks ===
+
+* Beatrice (VST®) DSP engine contains a proprietary inference library. Under licensing, all usage must remain within standard personal, non-commercial boundaries.
+* VST is a registered trademark of Steinberg Media Technologies GmbH.

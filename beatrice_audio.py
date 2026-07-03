@@ -30,18 +30,16 @@ class Config:
     pitch_shift = 0.0  # Semitones shift
     formant_shift = 0.0  # Formant shift value
     volume = 1.0
-    gate_threshold = 0.01  # Noise gate threshold
+    gate_threshold = 0.0  # Noise gate threshold
     input_meter = 0.0
     output_meter = 0.0
+    muted = False
     
     # Advanced routing
     input_device_id = None
     output_device_id = None
     monitor_device_id = None
     hear_yourself = False
-    
-    # Model configuration
-    model_name = "jvs"
     
     # Deferred parameter updates — set by HTTP thread, consumed by audio callback
     pending_speaker_index = None
@@ -52,6 +50,11 @@ class Config:
     
     # DSP ready flag — set to True after models are loaded and speaker 0 is initialised
     dsp_ready = False
+    current_model = "jvs"
+
+class GateState:
+    envelope = 0.0
+    hold_counter = 0
 
 # Non-blocking audio queue for local monitoring
 monitor_queue = queue.Queue(maxsize=50)
@@ -63,7 +66,23 @@ def cleanup_and_exit(signum=None, frame=None):
     global stream, monitor_stream
     print("\n[*] Gracefully cleaning up resources before exit...")
     
-    # 1. Stop PortAudio Streams
+    # 1. Stop background threads by putting None in their queues and joining them
+    try:
+        monitor_queue.put(None)
+        _speaker_update_queue.put(None)
+    except Exception:
+        pass
+        
+    try:
+        if 'monitor_thread' in globals() and monitor_thread.is_alive():
+            monitor_thread.join(timeout=1.0)
+        if '_speaker_update_thread' in globals() and _speaker_update_thread.is_alive():
+            _speaker_update_thread.join(timeout=1.0)
+        print("[+] Background worker threads stopped.")
+    except Exception as e:
+        print("[-] Error joining threads:", e)
+
+    # 2. Stop PortAudio Streams
     with stream_lock:
         if stream:
             try:
@@ -83,7 +102,7 @@ def cleanup_and_exit(signum=None, frame=None):
                 print("[-] Error closing monitor stream:", e)
             monitor_stream = None
 
-    # 2. Destroy VST3 Contexts and Extractors
+    # 3. Destroy VST3 Contexts and Extractors
     try:
         if 'embedding_context' in globals() and embedding_context:
             lib.Beatrice20rc0_DestroyEmbeddingContext(embedding_context)
@@ -116,10 +135,9 @@ signal.signal(signal.SIGTERM, cleanup_and_exit)
 def check_parent_alive():
     """
     Monitor whether the parent Electron process is still alive.
-    We check if the parent PID is still running using os.kill(pid, 0).
-    If it is no longer running (throws OSError), we trigger a clean shutdown.
-    On Windows, child processes are automatically cleaned up by OS Job Objects,
-    so we can skip this check to avoid platform-specific os.kill issues.
+    We record the parent PID at startup; if it ever changes (i.e. the process
+    was re-parented because Electron died), we trigger a clean shutdown.
+    On macOS/Linux a dead parent is re-parented to PID 1 (launchd/init).
     """
     if sys.platform == 'win32':
         return
@@ -127,10 +145,12 @@ def check_parent_alive():
     while True:
         time.sleep(2)
         try:
-            os.kill(original_ppid, 0)
-        except OSError:
-            print("[-] Parent process (Electron) terminated. Triggering auto-cleanup...")
-            cleanup_and_exit()
+            current_ppid = os.getppid()
+            if current_ppid != original_ppid:
+                print("[-] Parent process (Electron) terminated. Triggering auto-cleanup...")
+                cleanup_and_exit()
+        except Exception:
+            pass
 
 parent_monitor_thread = threading.Thread(target=check_parent_alive, daemon=True)
 parent_monitor_thread.start()
@@ -264,12 +284,18 @@ def restart_audio_streams():
         except Exception as e:
             print("[-] PortAudio stream configuration error:", e)
 
+_sb_playing = False
+_sb_stop_event = threading.Event()
+
 def play_soundboard_audio(file_path, hear_yourself=False):
     """Play an audio file through the selected output device.
     If hear_yourself is True, also plays through the monitor device."""
-    global _sb_stop_event
+    global _sb_stop_event, _sb_playing
+    _sb_playing = True
     _sb_stop_event.clear()
+    print(f"[Soundboard Debug] play_soundboard_audio: file_path={file_path}, hear_yourself={hear_yourself}, Config.output_device_id={Config.output_device_id}, Config.monitor_device_id={Config.monitor_device_id}", flush=True)
     if not HAS_SF:
+        _sb_playing = False
         return
     try:
         data, samplerate = sf.read(file_path, dtype='float32')
@@ -302,6 +328,20 @@ def play_soundboard_audio(file_path, hear_yourself=False):
             except Exception:
                 pass
 
+        # Check if output and monitor devices are the same
+        is_same_device = False
+        if out_dev == mon_dev:
+            is_same_device = True
+        elif out_dev is None or mon_dev is None:
+            try:
+                default_out = sd.default.device[1]
+                o = default_out if out_dev is None else out_dev
+                m = default_out if mon_dev is None else mon_dev
+                if o == m:
+                    is_same_device = True
+            except Exception:
+                pass
+
         if hear_yourself:
             try:
                 mon_info = sd.query_devices(mon_dev, 'output') if mon_dev else sd.query_devices(kind='output')
@@ -317,22 +357,30 @@ def play_soundboard_audio(file_path, hear_yourself=False):
                 ).astype(np.float32)
             else:
                 mon_data = data
-            t_out = threading.Thread(target=_play_stream, args=(out_dev, target_sr, data), daemon=True)
-            t_mon = threading.Thread(target=_play_stream, args=(mon_dev, mon_sr, mon_data), daemon=True)
-            t_out.start()
-            t_mon.start()
-            t_out.join()
-            t_mon.join()
+            
+            if is_same_device:
+                t_out = threading.Thread(target=_play_stream, args=(out_dev, target_sr, data), daemon=True)
+                t_out.start()
+                t_out.join()
+            else:
+                t_out = threading.Thread(target=_play_stream, args=(out_dev, target_sr, data), daemon=True)
+                t_mon = threading.Thread(target=_play_stream, args=(mon_dev, mon_sr, mon_data), daemon=True)
+                t_out.start()
+                t_mon.start()
+                t_out.join()
+                t_mon.join()
         else:
-            # Wrap in a thread so the function returns immediately
-            # and the HTTP handler is never stalled during playback.
-            t_out = threading.Thread(target=_play_stream, args=(out_dev, target_sr, data), daemon=True)
-            t_out.start()
+            if is_same_device:
+                print("[Soundboard] Muted playback because hear_yourself is False and output device matches monitor device.")
+            else:
+                t_out = threading.Thread(target=_play_stream, args=(out_dev, target_sr, data), daemon=True)
+                t_out.start()
+                t_out.join()
     except Exception as e:
         print(f"[-] Soundboard playback error: {e}")
         traceback.print_exc()
-
-_sb_stop_event = threading.Event()
+    finally:
+        _sb_playing = False
 
 def stop_soundboard_audio():
     _sb_stop_event.set()
@@ -362,6 +410,8 @@ class ControlHandler(BaseHTTPRequestHandler):
             status = {
                 "bypass": Config.bypass,
                 "speaker_index": Config.speaker_index,
+                "current_model": Config.current_model,
+                "n_speakers": n_speakers,
                 "pitch_shift": Config.pitch_shift,
                 "formant_shift": Config.formant_shift,
                 "volume": Config.volume,
@@ -372,7 +422,8 @@ class ControlHandler(BaseHTTPRequestHandler):
                 "output_device_id": Config.output_device_id,
                 "monitor_device_id": Config.monitor_device_id,
                 "hear_yourself": Config.hear_yourself,
-                "model_name": Config.model_name
+                "muted": Config.muted,
+                "sb_playing": _sb_playing
             }
             self.wfile.write(json.dumps(status).encode())
             
@@ -407,10 +458,8 @@ class ControlHandler(BaseHTTPRequestHandler):
                 Config.volume = float(query['volume'][0])
             if 'gate_threshold' in query:
                 Config.gate_threshold = float(query['gate_threshold'][0])
-            if 'model_name' in query:
-                new_model = query['model_name'][0]
-                if new_model != Config.model_name:
-                    threading.Thread(target=load_vst3_model, args=(new_model,), daemon=True).start()
+            if 'muted' in query:
+                Config.muted = query['muted'][0].lower() == 'true'
                 
             # Device Routing updates
             if 'input_device_id' in query:
@@ -442,6 +491,12 @@ class ControlHandler(BaseHTTPRequestHandler):
                 
             self.wfile.write(json.dumps({"status": "success"}).encode())
 
+        elif parsed.path == '/set_model':
+            if 'model' in query:
+                model_name = query['model'][0]
+                threading.Thread(target=load_vst3_model, args=(model_name,), daemon=True).start()
+            self.wfile.write(json.dumps({"status": "success"}).encode())
+
         elif parsed.path == '/play_sound':
             if not HAS_SF:
                 self.wfile.write(json.dumps({"error": "soundfile not installed"}).encode())
@@ -462,8 +517,11 @@ class ControlHandler(BaseHTTPRequestHandler):
             stop_soundboard_audio()
             self.wfile.write(json.dumps({"status": "stopped"}).encode())
 
+class ReusableHTTPServer(HTTPServer):
+    allow_reuse_address = True
+
 def run_http_server():
-    server = HTTPServer(('127.0.0.1', 5005), ControlHandler)
+    server = ReusableHTTPServer(('127.0.0.1', 5005), ControlHandler)
     print("[*] Control API Server running at http://127.0.0.1:5005")
     server.serve_forever()
 
@@ -564,6 +622,8 @@ lib.Beatrice20rc0_EstimatePitch1.restype = None
 lib.Beatrice20rc0_GenerateWaveform1.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float), ctypes.c_void_p]
 lib.Beatrice20rc0_GenerateWaveform1.restype = None
 
+# Global model references for runtime reloading
+model_lock = threading.Lock()
 phone_extractor = None
 phone_context = None
 pitch_estimator = None
@@ -572,18 +632,134 @@ waveform_generator = None
 waveform_context = None
 embedding_setter = None
 embedding_context = None
-
+n_speakers = 0
 codebooks = None
 additive_embeddings = None
 formant_shift_embeddings = None
 kv_embeddings = None
-n_speakers = 0
+
+def load_vst3_model(model_name):
+    global phone_extractor, phone_context
+    global pitch_estimator, pitch_context
+    global waveform_generator, waveform_context
+    global embedding_setter, embedding_context
+    global codebooks, additive_embeddings, formant_shift_embeddings, kv_embeddings, n_speakers
+    
+    if model_name not in ["jvs", "official_1", "old_tts", "trump"] and not model_name.startswith("custom:"):
+        print(f"[-] Invalid model name requested: {model_name}")
+        return
+        
+    if model_name.startswith("custom:"):
+        folder_name = model_name[7:]  # strip 'custom:' prefix
+        model_dir = os.path.join("custom_models", folder_name)
+        custom_models_base = os.environ.get("BEATRICE_CUSTOM_MODELS_DIR")
+        if custom_models_base:
+            paraphernalia_dir = os.path.join(custom_models_base, folder_name)
+        else:
+            paraphernalia_dir = os.path.join(_BASE_DIR, "custom_models", folder_name)
+        if not os.path.isdir(paraphernalia_dir):
+            print(f"[-] Custom model folder not found: {paraphernalia_dir}")
+            return
+    else:
+        if model_name == "official_1":
+            model_dir = "beatrice_paraphernalia_official_1"
+        elif model_name == "old_tts":
+            model_dir = "beatrice_paraphernalia_old_tts"
+        elif model_name == "trump":
+            model_dir = "beatrice_paraphernalia_trump_00001200"
+        else:
+            model_dir = "beatrice_paraphernalia_jvs"
+        paraphernalia_dir = os.path.join(_BASE_DIR, model_dir)
+    phone_bin = f"{paraphernalia_dir}/phone_extractor.bin".encode()
+    pitch_bin = f"{paraphernalia_dir}/pitch_estimator.bin".encode()
+    waveform_bin = f"{paraphernalia_dir}/waveform_generator.bin".encode()
+    embedding_bin_path = f"{paraphernalia_dir}/embedding_setter.bin"
+    if not os.path.exists(embedding_bin_path):
+        embedding_bin_path = os.path.join(_BASE_DIR, "beatrice_paraphernalia_jvs/embedding_setter.bin")
+    embedding_bin = embedding_bin_path.encode()
+    speaker_bin = f"{paraphernalia_dir}/speaker_embeddings.bin".encode()
+    
+    # 1. Clear dsp_ready to fallback to bypass mode safely during load
+    Config.dsp_ready = False
+    
+    # Give a tiny sleep to let ongoing audio callbacks exit VST3 inference
+    time.sleep(0.02)
+    
+    with model_lock:
+        # Destroy existing native components
+        try:
+            if embedding_context:
+                lib.Beatrice20rc0_DestroyEmbeddingContext(embedding_context)
+            if waveform_context:
+                lib.Beatrice20rc0_DestroyWaveformContext1(waveform_context)
+            if pitch_context:
+                lib.Beatrice20rc0_DestroyPitchContext1(pitch_context)
+            if phone_context:
+                lib.Beatrice20rc0_DestroyPhoneContext1(phone_context)
+                
+            if embedding_setter:
+                lib.Beatrice20rc0_DestroyEmbeddingSetter(embedding_setter)
+            if waveform_generator:
+                lib.Beatrice20rc0_DestroyWaveformGenerator(waveform_generator)
+            if pitch_estimator:
+                lib.Beatrice20rc0_DestroyPitchEstimator(pitch_estimator)
+            if phone_extractor:
+                lib.Beatrice20rc0_DestroyPhoneExtractor(phone_extractor)
+            print("[+] Successfully cleared old VST3 model contexts")
+        except Exception as e:
+            print("[-] Error destroying existing VST3 components:", e)
+            
+        print(f"[*] Loading Beatrice VST3 model parameters from: {model_dir}")
+        try:
+            phone_extractor = lib.Beatrice20rc0_CreatePhoneExtractor()
+            lib.Beatrice20rc0_ReadPhoneExtractorParameters(phone_extractor, phone_bin)
+            phone_context = lib.Beatrice20rc0_CreatePhoneContext1()
+            
+            pitch_estimator = lib.Beatrice20rc0_CreatePitchEstimator()
+            lib.Beatrice20rc0_ReadPitchEstimatorParameters(pitch_estimator, pitch_bin)
+            pitch_context = lib.Beatrice20rc0_CreatePitchContext1()
+            
+            waveform_generator = lib.Beatrice20rc0_CreateWaveformGenerator()
+            lib.Beatrice20rc0_ReadWaveformGeneratorParameters(waveform_generator, waveform_bin)
+            waveform_context = lib.Beatrice20rc0_CreateWaveformContext1()
+            
+            embedding_setter = lib.Beatrice20rc0_CreateEmbeddingSetter()
+            lib.Beatrice20rc0_ReadEmbeddingSetterParameters(embedding_setter, embedding_bin)
+            
+            _n_spk_val = ctypes.c_int(0)
+            lib.Beatrice20rc0_ReadNSpeakers(speaker_bin, ctypes.byref(_n_spk_val))
+            n_speakers = _n_spk_val.value if _n_spk_val.value > 0 else 101
+            print(f"[*] Speaker count: {n_speakers}")
+            
+            codebooks = (ctypes.c_float * (n_speakers * 512 * 128))()
+            additive_embeddings = (ctypes.c_float * (n_speakers * 256))()
+            formant_shift_embeddings = (ctypes.c_float * (9 * 256))()
+            kv_embeddings = (ctypes.c_float * (n_speakers * 384 * 128))()
+            
+            lib.Beatrice20rc0_ReadSpeakerEmbeddings(
+                speaker_bin,
+                ctypes.cast(codebooks, ctypes.POINTER(ctypes.c_float)),
+                ctypes.cast(additive_embeddings, ctypes.POINTER(ctypes.c_float)),
+                ctypes.cast(formant_shift_embeddings, ctypes.POINTER(ctypes.c_float)),
+                ctypes.cast(kv_embeddings, ctypes.POINTER(ctypes.c_float))
+            )
+            
+            embedding_context = lib.Beatrice20rc0_CreateEmbeddingContext()
+            
+            # Apply default speaker index and formant shift
+            Config.speaker_index = 0
+            update_target_speaker(0)
+            update_formant_shift(Config.formant_shift)
+            
+            Config.current_model = model_name
+            Config.dsp_ready = True
+            print(f"[+] Loaded VST3 model: {model_name} successfully")
+        except Exception as e:
+            print(f"[-] Failed to load model {model_name}: {e}")
+
 
 # Helper functions to update target speaker index and formant shift coefficients
 def update_target_speaker(speaker_id):
-    global codebooks, additive_embeddings, kv_embeddings, n_speakers
-    if codebooks is None or phone_context is None or embedding_setter is None:
-        return
     if speaker_id < 0 or speaker_id >= n_speakers:
         return
     try:
@@ -616,9 +792,6 @@ def update_target_speaker(speaker_id):
         print("Error in update_target_speaker:", e)
 
 def update_formant_shift(formant_shift_val):
-    global formant_shift_embeddings
-    if formant_shift_embeddings is None or embedding_setter is None:
-        return
     try:
         # Map formant shift in [-2.0, 2.0] to index [0, 8]
         idx = int(round(formant_shift_val * 2.0 + 4.0))
@@ -633,141 +806,13 @@ def update_formant_shift(formant_shift_val):
     except Exception as e:
         print("Error in update_formant_shift:", e)
 
-_model_load_lock = threading.Lock()
+# Load default model and apply initial settings on startup
+load_vst3_model("jvs")
 
-def load_vst3_model(model_name):
-    global phone_extractor, phone_context, pitch_estimator, pitch_context
-    global waveform_generator, waveform_context, embedding_setter, embedding_context
-    global codebooks, additive_embeddings, formant_shift_embeddings, kv_embeddings, n_speakers
-    
-    with _model_load_lock:
-        if model_name == Config.model_name and Config.dsp_ready:
-            return True
-            
-        if model_name not in ["jvs", "official_1", "old_tts"]:
-            print(f"[-] Invalid model name requested: {model_name}")
-            return False
-            
-        print(f"[*] Switching Beatrice DSP model to: {model_name}...")
-        Config.dsp_ready = False
-        time.sleep(0.05)  # allow active callback iterations to finish passthrough
-    
-        # 1. Clean up existing contexts and extractors
-        try:
-            if embedding_context:
-                lib.Beatrice20rc0_DestroyEmbeddingContext(embedding_context)
-                embedding_context = None
-            if waveform_context:
-                lib.Beatrice20rc0_DestroyWaveformContext1(waveform_context)
-                waveform_context = None
-            if pitch_context:
-                lib.Beatrice20rc0_DestroyPitchContext1(pitch_context)
-                pitch_context = None
-            if phone_context:
-                lib.Beatrice20rc0_DestroyPhoneContext1(phone_context)
-                phone_context = None
-                
-            if embedding_setter:
-                lib.Beatrice20rc0_DestroyEmbeddingSetter(embedding_setter)
-                embedding_setter = None
-            if waveform_generator:
-                lib.Beatrice20rc0_DestroyWaveformGenerator(waveform_generator)
-                waveform_generator = None
-            if pitch_estimator:
-                lib.Beatrice20rc0_DestroyPitchEstimator(pitch_estimator)
-                pitch_estimator = None
-            if phone_extractor:
-                lib.Beatrice20rc0_DestroyPhoneExtractor(phone_extractor)
-                phone_extractor = None
-        except Exception as cleanup_err:
-            print(f"[-] Warning: Context cleanup error: {cleanup_err}")
-    
-        # Clear pending speaker update queue
-        while not _speaker_update_queue.empty():
-            try:
-                _speaker_update_queue.get_nowait()
-            except queue.Empty:
-                break
-    
-        # Determine model directory
-        if model_name == "official_1":
-            model_dir = "beatrice_paraphernalia_official_1"
-        elif model_name == "old_tts":
-            model_dir = "beatrice_paraphernalia_old_tts"
-        else:
-            model_dir = "beatrice_paraphernalia_jvs"
-            
-        paraphernalia_dir = os.path.join(_BASE_DIR, model_dir)
-        phone_bin = f"{paraphernalia_dir}/phone_extractor.bin".encode()
-        pitch_bin = f"{paraphernalia_dir}/pitch_estimator.bin".encode()
-        waveform_bin = f"{paraphernalia_dir}/waveform_generator.bin".encode()
-        embedding_bin = f"{paraphernalia_dir}/embedding_setter.bin".encode()
-        speaker_bin = f"{paraphernalia_dir}/speaker_embeddings.bin".encode()
-        
-        if not os.path.exists(phone_bin):
-            print(f"[-] Model files not found in: {paraphernalia_dir}")
-            return False
-            
-        try:
-            # Load weights and create contexts
-            phone_extractor = lib.Beatrice20rc0_CreatePhoneExtractor()
-            lib.Beatrice20rc0_ReadPhoneExtractorParameters(phone_extractor, phone_bin)
-            phone_context = lib.Beatrice20rc0_CreatePhoneContext1()
-            
-            pitch_estimator = lib.Beatrice20rc0_CreatePitchEstimator()
-            lib.Beatrice20rc0_ReadPitchEstimatorParameters(pitch_estimator, pitch_bin)
-            pitch_context = lib.Beatrice20rc0_CreatePitchContext1()
-            
-            waveform_generator = lib.Beatrice20rc0_CreateWaveformGenerator()
-            lib.Beatrice20rc0_ReadWaveformGeneratorParameters(waveform_generator, waveform_bin)
-            waveform_context = lib.Beatrice20rc0_CreateWaveformContext1()
-            
-            embedding_setter = lib.Beatrice20rc0_CreateEmbeddingSetter()
-            lib.Beatrice20rc0_ReadEmbeddingSetterParameters(embedding_setter, embedding_bin)
-            
-            # Read speaker count from binary
-            _n_spk_val = ctypes.c_int(0)
-            lib.Beatrice20rc0_ReadNSpeakers(speaker_bin, ctypes.byref(_n_spk_val))
-            n_speakers = _n_spk_val.value if _n_spk_val.value > 0 else 101
-            print(f"[*] Speaker count from binary ({model_name}): {n_speakers}")
-            
-            # Allocate speaker buffers
-            codebooks = (ctypes.c_float * (n_speakers * 512 * 128))()
-            additive_embeddings = (ctypes.c_float * (n_speakers * 256))()
-            formant_shift_embeddings = (ctypes.c_float * (9 * 256))()
-            kv_embeddings = (ctypes.c_float * (n_speakers * 384 * 128))()
-            
-            lib.Beatrice20rc0_ReadSpeakerEmbeddings(
-                speaker_bin,
-                ctypes.cast(codebooks, ctypes.POINTER(ctypes.c_float)),
-                ctypes.cast(additive_embeddings, ctypes.POINTER(ctypes.c_float)),
-                ctypes.cast(formant_shift_embeddings, ctypes.POINTER(ctypes.c_float)),
-                ctypes.cast(kv_embeddings, ctypes.POINTER(ctypes.c_float))
-            )
-            
-            embedding_context = lib.Beatrice20rc0_CreateEmbeddingContext()
-            
-            # Apply default configuration settings
-            if Config.pending_speaker_index is not None:
-                Config.speaker_index = Config.pending_speaker_index
-                Config.pending_speaker_index = None
-                
-            if Config.speaker_index < 0 or Config.speaker_index >= n_speakers:
-                Config.speaker_index = 0
-                
-            update_target_speaker(Config.speaker_index)
-            update_formant_shift(Config.formant_shift)
-            
-            Config.model_name = model_name
-            Config.dsp_ready = True
-            print(f"[+] Beatrice VST3 model loaded: {model_name}")
-            return True
-        except Exception as e:
-            print(f"[-] Failed to load model '{model_name}': {e}")
-            traceback.print_exc()
-            return False
-
-# Model queues and workers will be initialized next
+# Mark DSP as fully ready — the audio callback checks this flag before
+# engaging the DSP pipeline, so we never run the C models with uninitialised state.
+Config.dsp_ready = True
+print("[+] Beatrice DSP engine successfully initialized. Voice conversion is ACTIVE.")
 
 # Persistent ctypes buffers for thread-safe real-time DSP execution to prevent real-time allocation overhead
 class DSPBuffers:
@@ -786,8 +831,7 @@ def _speaker_update_worker():
             idx = _speaker_update_queue.get()
             if idx is None:
                 break
-            if Config.dsp_ready:
-                update_target_speaker(idx)
+            update_target_speaker(idx)
         except Exception as ex:
             print(f'[Beatrice] Speaker update worker error: {ex}')
 
@@ -798,7 +842,30 @@ _speaker_update_thread.start()
 def audio_callback(indata, outdata, frames, time_info, status):
     # Input volume meter
     in_samples = indata[:, 0]
+    if Config.muted:
+        in_samples = np.zeros_like(in_samples)
     Config.input_meter = float(np.max(np.abs(in_samples)))
+
+    # --- Noise gate envelope follower ---
+    is_above = Config.input_meter >= Config.gate_threshold
+    if is_above:
+        GateState.envelope = 1.0
+        GateState.hold_counter = 20  # 200ms hold (20 blocks * 10ms)
+    else:
+        if GateState.hold_counter > 0:
+            GateState.hold_counter -= 1
+            GateState.envelope = 1.0
+        else:
+            # Release time ~150ms: 15 blocks (decay rate per 10ms block: 1/15 = 0.067)
+            GateState.envelope = max(0.0, GateState.envelope - 0.067)
+
+    # Smoothly gate the input signal
+    in_samples = in_samples * GateState.envelope
+
+    if GateState.envelope <= 0.0:
+        outdata[:, 0] = 0.0
+        Config.output_meter = 0.0
+        return
 
     # --- Dispatch pending speaker index to the background worker ---
     # We do NOT call update_target_speaker() directly here; that involves
@@ -832,12 +899,6 @@ def audio_callback(indata, outdata, frames, time_info, status):
                 pass
         else:
             outdata[:, 0] = 0.0
-        return
-
-    # --- Noise gate ---
-    if Config.input_meter < Config.gate_threshold:
-        outdata[:, 0] = 0.0
-        Config.output_meter = 0.0
         return
 
     # --- DSP pipeline ---
@@ -909,9 +970,6 @@ def audio_callback(indata, outdata, frames, time_info, status):
 # Launch HTTP service
 http_thread = threading.Thread(target=run_http_server, daemon=True)
 http_thread.start()
-
-# Load default model on startup
-load_vst3_model("jvs")
 
 # Load default streams on start
 restart_audio_streams()

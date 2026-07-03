@@ -1,0 +1,19 @@
+[model]
+version = "2.0.0-rc.0"
+name = "Donald Trump"
+description = """
+Imported custom voice model.
+"""
+
+[voice.0]
+name = "Donald Trump"
+description = """
+Custom imported speaker.
+"""
+average_pitch = 50.875
+categories = ["human","politician","memes","deep"]
+
+[voice.0.portrait]
+path = "avatar.png"
+description = """
+"""

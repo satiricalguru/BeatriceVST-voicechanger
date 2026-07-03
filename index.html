@@ -67,40 +67,40 @@
       <div class="control-group card" role="group" aria-labelledby="audio-routing-heading">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
           <h2 class="control-group-heading" id="audio-routing-heading" data-i18n="audio_routing" style="margin:0">Audio Routing</h2>
-          <button id="refresh-devices-btn" title="Rescan audio devices" aria-label="Refresh audio device list" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);cursor:pointer;font-size:11px;padding:3px 8px;display:flex;align-items:center;gap:4px;white-space:nowrap;transition:color .15s,border-color .15s" onmouseover="this.style.color='var(--text)';this.style.borderColor='var(--accent)'" onmouseout="this.style.color='var(--text-muted)';this.style.borderColor='var(--border)'">
+          <button id="refresh-devices-btn" title="Rescan audio devices" aria-label="Refresh audio device list" style="background:transparent;border:1px solid var(--border-subtle);border-radius:6px;color:var(--text-lo);cursor:pointer;font-size:11px;padding:3px 8px;display:flex;align-items:center;gap:4px;white-space:nowrap;transition:color .15s,border-color .15s" onmouseover="this.style.color='var(--text-hi)';this.style.borderColor='var(--accent)'" onmouseout="this.style.color='var(--text-lo)';this.style.borderColor='var(--border-subtle)'">
             <svg viewBox="0 0 16 16" fill="none" width="12" height="12"><path d="M14 8A6 6 0 0 1 2.1 9.9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M2 8a6 6 0 0 1 11.9-1.9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M14 5v3h-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11V8h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Refresh
+            <span data-i18n="refresh_btn">Refresh</span>
           </button>
         </div>
-        <p class="control-group-desc">Output device receives your converted voice for other apps. Use headphones to avoid hearing yourself.</p>
+        <p class="control-group-desc" data-i18n="audio_routing_desc">Output device receives your converted voice for other apps. Use headphones to avoid hearing yourself.</p>
         <div class="select-container">
-          <label class="control-label" for="input-device-select">Input Microphone</label>
+          <label class="control-label" for="input-device-select" data-i18n="input_microphone">Input Microphone</label>
           <div class="select-wrapper">
             <select id="input-device-select" class="dropdown-select">
-              <option value="null">Default Microphone</option>
+              <option value="null" data-i18n="default_microphone">Default Microphone</option>
             </select>
           </div>
         </div>
         <div class="select-container">
-          <label class="control-label" for="output-device-select">Output Device</label>
+          <label class="control-label" for="output-device-select" data-i18n="output_device">Output Device</label>
           <div class="select-wrapper">
             <select id="output-device-select" class="dropdown-select">
-              <option value="null">Default Speaker</option>
+              <option value="null" data-i18n="default_speaker">Default Speaker</option>
             </select>
           </div>
         </div>
         <div class="toggle-container">
-          <label class="control-label" for="hear-yourself-toggle">Hear Yourself</label>
+          <label class="control-label" for="hear-yourself-toggle" data-i18n="hear_yourself">Hear Yourself</label>
           <label class="switch" aria-label="Toggle hear yourself monitoring">
             <input type="checkbox" id="hear-yourself-toggle">
             <span class="switch-slider"></span>
           </label>
         </div>
         <div class="select-container hidden" id="monitor-container" aria-hidden="true">
-          <label class="control-label" for="monitor-device-select">Monitor Device</label>
+          <label class="control-label" for="monitor-device-select" data-i18n="monitor_device">Monitor Device</label>
           <div class="select-wrapper">
             <select id="monitor-device-select" class="dropdown-select">
-              <option value="null">Default Headphones</option>
+              <option value="null" data-i18n="default_headphones">Default Headphones</option>
             </select>
           </div>
         </div>
@@ -111,7 +111,7 @@
         <h2 class="control-group-heading" id="dsp-heading" data-i18n="dsp_modifiers">DSP Modifiers</h2>
         <div class="slider-container">
           <div class="slider-header">
-            <label class="control-label" for="pitch-slider">Pitch Shift</label>
+            <label class="control-label" for="pitch-slider" data-i18n="pitch_shift">Pitch Shift</label>
             <span class="slider-val mono" id="pitch-val" aria-live="polite">0.0 st</span>
           </div>
           <input type="range" min="-12" max="12" step="0.5" value="0" class="slider" id="pitch-slider" aria-label="Pitch shift in semitones" aria-valuemin="-12" aria-valuemax="12" aria-valuenow="0">
@@ -119,7 +119,7 @@
         </div>
         <div class="slider-container">
           <div class="slider-header">
-            <label class="control-label" for="formant-slider">Formant Shift</label>
+            <label class="control-label" for="formant-slider" data-i18n="formant_shift">Formant Shift</label>
             <span class="slider-val mono" id="formant-val" aria-live="polite">0.0</span>
           </div>
           <input type="range" min="-1.5" max="1.5" step="0.1" value="0" class="slider" id="formant-slider" aria-label="Formant shift" aria-valuemin="-1.5" aria-valuemax="1.5" aria-valuenow="0">
@@ -132,14 +132,14 @@
         <h2 class="control-group-heading" id="input-controls-heading" data-i18n="input_controls">Input Controls</h2>
         <div class="slider-container">
           <div class="slider-header">
-            <label class="control-label" for="gate-slider">Noise Gate</label>
-            <span class="slider-val mono" id="gate-val" aria-live="polite">0.010</span>
+            <label class="control-label" for="gate-slider" data-i18n="noise_gate">Noise Gate</label>
+            <span class="slider-val mono" id="gate-val" aria-live="polite">0.000</span>
           </div>
-          <input type="range" min="0" max="0.1" step="0.001" value="0.01" class="slider" id="gate-slider" aria-label="Noise gate threshold" aria-valuemin="0" aria-valuemax="0.1" aria-valuenow="0.01">
+          <input type="range" min="0" max="0.1" step="0.001" value="0" class="slider" id="gate-slider" aria-label="Noise gate threshold" aria-valuemin="0" aria-valuemax="0.1" aria-valuenow="0">
         </div>
         <div class="meter-container" role="meter" aria-label="Input audio level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
           <div class="slider-header">
-            <span class="control-label">Input Level</span>
+            <span class="control-label" data-i18n="input_level">Input Level</span>
             <span class="meter-db-val mono" id="input-db-val">&mdash;</span>
           </div>
           <div class="meter-bar-bg"><div class="meter-bar-fill" id="input-meter-fill"></div></div>
@@ -151,14 +151,14 @@
         <h2 class="control-group-heading" id="output-heading" data-i18n="output_controls">Output Controls</h2>
         <div class="slider-container">
           <div class="slider-header">
-            <label class="control-label" for="volume-slider">Output Volume</label>
+            <label class="control-label" for="volume-slider" data-i18n="output_volume">Output Volume</label>
             <span class="slider-val mono" id="volume-val" aria-live="polite">100%</span>
           </div>
           <input type="range" min="0" max="2" step="0.05" value="1" class="slider" id="volume-slider" aria-label="Output volume" aria-valuemin="0" aria-valuemax="200" aria-valuenow="100">
         </div>
         <div class="meter-container" role="meter" aria-label="Output audio level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
           <div class="slider-header">
-            <span class="control-label">Output Level</span>
+            <span class="control-label" data-i18n="output_level">Output Level</span>
             <span class="meter-db-val mono" id="output-db-val">&mdash;</span>
           </div>
           <div class="meter-bar-bg"><div class="meter-bar-fill output-fill" id="output-meter-fill"></div></div>
@@ -168,10 +168,8 @@
       <!-- Footer -->
       <div class="sidebar-footer" role="status" aria-live="polite">
         <div class="conn-dot" id="conn-dot" aria-hidden="true"></div>
-        <span class="conn-label mono" id="conn-label">Connecting&hellip;</span>
+        <span class="conn-label mono" id="conn-label" data-i18n="connecting">Connecting&hellip;</span>
       </div>
-
-
 
     </aside>
 
@@ -187,15 +185,6 @@
           <input type="search" placeholder="Search 100 voices..." class="search-input" id="search-box" aria-label="Search voices" autocomplete="off" spellcheck="false">
           <span class="search-count mono" id="search-count" aria-live="polite"></span>
         </div>
-        <div class="select-container" style="margin-bottom: 0; min-width: 210px; -webkit-app-region: no-drag;">
-          <div class="select-wrapper">
-            <select id="model-select" class="dropdown-select" aria-label="Select voice model">
-              <option value="jvs">JVS Corpus (100 Voices)</option>
-              <option value="official_1">Official Model 1</option>
-              <option value="old_tts">Classic Old TTS (8 Voices)</option>
-            </select>
-          </div>
-        </div>
         <div class="status-panel" role="status">
           <div class="status-item" id="stream-status-item">
             <span class="status-dot" id="stream-dot"></span>
@@ -209,21 +198,71 @@
       </div>
 
       <nav class="content-tabs" aria-label="Content tabs">
-        <button class="tab-btn active" data-tab="voices" aria-selected="true" role="tab" data-i18n="tab_voices">Target Voices</button>
-        <button class="tab-btn" data-tab="soundboard-view" aria-selected="false" role="tab" data-i18n="tab_soundboard">Soundboard</button>
-        <button class="tab-btn" data-tab="settings-view" aria-selected="false" role="tab" data-i18n="tab_settings">
+        <button class="tab-btn active" data-tab="voices" aria-selected="true" role="tab">
+          <svg viewBox="0 0 20 20" fill="none" width="14" height="14">
+            <path d="M16 17v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 15.5V17M10 8.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span data-i18n="tab_voices">Voice Models</span>
+        </button>
+        <button class="tab-btn" data-tab="soundboard-view" aria-selected="false" role="tab">
+          <svg viewBox="0 0 20 20" fill="none" width="14" height="14">
+            <path d="M9 3.5L5.5 7H3a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h2.5L9 16.5V3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M12.5 7c.8 1 1.2 2 1.2 3s-.4 2-1.2 3M14.5 5c1.4 1.7 2.1 3.5 2.1 5s-.7 3.3-2.1 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <span data-i18n="tab_soundboard">Soundboard</span>
+        </button>
+        <button class="tab-btn" data-tab="library-view" aria-selected="false" role="tab">
+          <svg viewBox="0 0 20 20" fill="none" width="14" height="14">
+            <rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+            <rect x="11" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+            <rect x="2" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+            <rect x="11" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+          </svg>
+          <span data-i18n="tab_library">Library</span>
+        </button>
+        <button class="tab-btn" data-tab="settings-view" aria-selected="false" role="tab">
           <svg viewBox="0 0 20 20" fill="none" width="14" height="14">
             <path d="M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M16.17 12.5a1.38 1.38 0 0 0 .27 1.52l.05.05a1.66 1.66 0 1 1-2.35 2.35l-.05-.05a1.38 1.38 0 0 0-1.52-.27 1.38 1.38 0 0 0-.83 1.26v.08a1.66 1.66 0 0 1-3.33 0v-.07a1.38 1.38 0 0 0-.9-1.26 1.38 1.38 0 0 0-1.52.27l-.05.05a1.66 1.66 0 1 1-2.35-2.35l.05-.05a1.38 1.38 0 0 0 .27-1.52 1.38 1.38 0 0 0-1.26-.83H2.5a1.66 1.66 0 0 1 0-3.33h.07a1.38 1.38 0 0 0 1.26-.9 1.38 1.38 0 0 0-.27-1.52L3.51 5.7a1.66 1.66 0 1 1 2.35-2.35l.05.05a1.38 1.38 0 0 0 1.52.27h.07a1.38 1.38 0 0 0 .83-1.26V2.5a1.66 1.66 0 0 1 3.33 0v.07a1.38 1.38 0 0 0 .83 1.26 1.38 1.38 0 0 0 1.52-.27l.05-.05a1.66 1.66 0 1 1 2.35 2.35l-.05.05a1.38 1.38 0 0 0-.27 1.52v.07a1.38 1.38 0 0 0 1.26.83h.08a1.66 1.66 0 0 1 0 3.33h-.07a1.38 1.38 0 0 0-1.26.9Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16.17 12.5a1.38 1.38 0 0 0 .27 1.52l.05.05a1.66 1.66 0 1 1-2.35 2.35l-.05-.05a1.38 1.38 0 0 0-1.52-.27 1.38 1.38 0 0 0-.83 1.26v.08a1.66 1.66 0 0 1-3.33 0v-.07a1.38 1.38 0 0 0-.9-1.26 1.38 1.38 0 0 0-1.52.27l-.05.05a1.66 1.66 0 1 1-2.35-2.35l.05.05a1.38 1.38 0 0 0 .27-1.52 1.38 1.38 0 0 0-1.26-.83H2.5a1.66 1.66 0 0 1 0-3.33h.07a1.38 1.38 0 0 0 1.26-.9 1.38 1.38 0 0 0-.27-1.52L3.51 5.7a1.66 1.66 0 1 1 2.35-2.35l.05.05a1.38 1.38 0 0 0 1.52.27h.07a1.38 1.38 0 0 0 .83-1.26V2.5a1.66 1.66 0 0 1 3.33 0v.07a1.38 1.38 0 0 0 .83 1.26 1.38 1.38 0 0 0 1.52-.27l.05-.05a1.66 1.66 0 1 1 2.35 2.35l-.05.05a1.38 1.38 0 0 0-.27 1.52v.07a1.38 1.38 0 0 0 1.26.83h.08a1.66 1.66 0 0 1 0 3.33h-.07a1.38 1.38 0 0 0-1.26.9Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          Settings
+          <span data-i18n="tab_settings">Settings</span>
         </button>
       </nav>
 
       <section id="tab-voices" class="tab-section active" role="tabpanel">
-        <div class="content-header">
-          <h1 data-i18n="voices_title">Target Voices</h1>
-          <p data-i18n="voices_desc">Select a JVS speaker to morph your voice. Each speaker maps to a unique chemical element.</p>
+        <div class="content-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; width:100%;">
+
+          <div class="select-container" style="margin:0; min-width:260px; position:relative;">
+            <label class="control-label" data-i18n="voice_model_label">Voice Model</label>
+            <div class="custom-dropdown" id="model-dropdown-container">
+              <button class="dropdown-trigger" id="model-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="dropdown-trigger-text">JVS Corpus (100 Voices)</span>
+                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <ul class="dropdown-menu" id="model-dropdown-menu" role="listbox" aria-label="Voice model selection">
+                <li class="dropdown-item active" data-value="jvs" role="option" aria-selected="true">JVS Corpus (100 Voices)</li>
+                <li class="dropdown-item" data-value="official_1" role="option" aria-selected="false">Official Model (3 Voices)</li>
+                <li class="dropdown-item" data-value="old_tts" role="option" aria-selected="false">Classic Old TTS (8 Voices)</li>
+                <!-- Custom model entries injected dynamically by scanCustomModels() in renderer.js -->
+              </ul>
+            </div>
+          </div>
+          <button class="upload-btn" id="upload-custom-btn" style="height: 42px; align-self: flex-end; margin-bottom: 2px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="margin-right: 8px; vertical-align: middle;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+            <span data-i18n="upload_custom_model">Upload Custom Model</span>
+          </button>
+        </div>
+        <div class="category-bar" id="category-bar" role="tablist" aria-label="Voice categories">
+          <button class="category-btn active" data-category="all" role="tab" aria-selected="true" data-i18n="cat_all">All</button>
+          <button class="category-btn" data-category="roleplay" role="tab" aria-selected="false" data-i18n="cat_roleplay">Roleplay</button>
+          <button class="category-btn" data-category="memes" role="tab" aria-selected="false" data-i18n="cat_memes">Memes</button>
+          <button class="category-btn" data-category="female" role="tab" aria-selected="false" data-i18n="cat_female">Female</button>
+          <button class="category-btn" data-category="male" role="tab" aria-selected="false" data-i18n="cat_male">Male</button>
+          <button class="category-btn" data-category="human" role="tab" aria-selected="false" data-i18n="cat_human">Human</button>
+          <button class="category-btn" data-category="deep" role="tab" aria-selected="false" data-i18n="cat_deep">Deep</button>
+          <button class="category-btn" data-category="high-pitched" role="tab" aria-selected="false" data-i18n="cat_high_pitched">High-Pitched</button>
+          <button class="category-btn" data-category="sci-fi" role="tab" aria-selected="false" data-i18n="cat_sci_fi">Sci-Fi</button>
+          <button class="category-btn" data-category="robotic" role="tab" aria-selected="false" data-i18n="cat_robotic">Robotic</button>
         </div>
         <div class="speakers-grid" id="speakers-grid" role="listbox" aria-label="Available target voices">
           <div class="loading-state" id="loading-state">
@@ -234,10 +273,12 @@
       </section>
 
       <section id="tab-soundboard-view" class="tab-section" role="tabpanel">
-        <div class="content-header">
-          <h1 data-i18n="soundboard_title">Soundboard</h1>
-          <p data-i18n="soundboard_desc">Upload audio files, assign custom images, and play sounds. Click to play; right-click to change image or name.</p>
-          <button class="sb-upload-btn" id="sb-upload-btn">
+        <div class="content-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; width:100%; border-bottom: 1px solid var(--border-subtle); padding-bottom: 16px; margin-bottom: 16px;">
+          <div>
+            <h1 data-i18n="soundboard_title" style="margin:0 0 4px 0">Soundboard</h1>
+            <p data-i18n="soundboard_desc" style="margin:0; max-width: 680px;">Upload audio files, assign custom images, and play sounds. Click to play; right-click to change image or name.</p>
+          </div>
+          <button class="sb-upload-btn" id="sb-upload-btn" style="margin-top:0; height: 42px; align-self: flex-end; margin-bottom: 2px;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="17 8 12 3 7 8"/>
@@ -248,6 +289,42 @@
         </div>
         <div class="soundboard-main-grid" id="soundboard-main-grid"></div>
         <input type="file" id="sb-audio-input" accept="audio/*" multiple class="visually-hidden">
+      </section>
+
+      <section id="tab-library-view" class="tab-section" role="tabpanel">
+
+        <!-- Top search bar -->
+        <div class="lib-topbar">
+          <div class="search-container" role="search" style="flex:1; max-width:360px">
+            <svg class="search-icon" viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M13 13l4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <input type="search" placeholder="Search sounds…" class="search-input" id="lib-search" autocomplete="off" spellcheck="false">
+          </div>
+          <span class="lib-stats mono" id="lib-stats"></span>
+        </div>
+
+        <!-- Category bar -->
+        <div class="lib-cat-bar" id="lib-cat-bar" role="tablist" aria-label="Sound categories">
+          <button class="lib-cat-btn active" data-cat="all">All</button>
+          <button class="lib-cat-btn" data-cat="memes">Memes</button>
+          <button class="lib-cat-btn" data-cat="indian">Indian</button>
+          <button class="lib-cat-btn" data-cat="sfx">SFX</button>
+          <button class="lib-cat-btn" data-cat="music">Music</button>
+          <button class="lib-cat-btn" data-cat="games">Games</button>
+          <button class="lib-cat-btn" data-cat="comedy">Comedy</button>
+          <button class="lib-cat-btn" data-cat="nature">Nature</button>
+          <button class="lib-cat-btn" data-cat="voices">Voices</button>
+          <button class="lib-cat-btn" data-cat="anime">Anime</button>
+          <button class="lib-cat-btn" data-cat="horror">Horror</button>
+        </div>
+
+        <!-- Sound grid -->
+        <div class="lib-grid" id="lib-grid"></div>
+
+        <!-- Pagination -->
+        <div class="lib-pagination" id="lib-pagination" style="display:none">
+          <button class="lib-load-more-btn" id="lib-load-more-btn">Load More</button>
+        </div>
+
       </section>
 
       <section id="tab-settings-view" class="tab-section" role="tabpanel">
@@ -340,6 +417,128 @@
 
     </main>
   </div>
+
+  <!-- Custom Model Upload Modal -->
+  <div class="modal-overlay" id="upload-modal" style="display:none;">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title">Import Custom Voice Model</h2>
+        <button class="modal-close" id="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="control-label">Model Archive (.zip)</label>
+          <div class="file-upload-card" id="zip-dropzone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32" class="upload-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+            <span class="upload-text" id="upload-status-text">Click to select a .zip file</span>
+            <input type="file" id="custom-zip-input" accept=".zip" style="display:none;">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label" for="custom-model-name">Voice Name</label>
+          <input type="text" id="custom-model-name" placeholder="e.g. Donald Trump, Hatsune Miku" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="control-label">Category</label>
+          <div class="modal-category-grid" id="modal-category-grid">
+            <button type="button" class="modal-cat-btn" data-category="anime">Anime</button>
+            <button type="button" class="modal-cat-btn" data-category="celebrity">Celebrity</button>
+            <button type="button" class="modal-cat-btn" data-category="gaming">Gaming</button>
+            <button type="button" class="modal-cat-btn" data-category="politician">Politician</button>
+            <button type="button" class="modal-cat-btn" data-category="other">Other</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn-secondary" id="modal-cancel-btn">Cancel</button>
+        <button class="modal-btn-primary" id="modal-import-btn" disabled>Import Model</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Control Bar (Voicemod Style) -->
+  <div class="floating-control-bar" id="floating-control-bar">
+    <!-- Power Button -->
+    <button class="fc-btn fc-power-btn active" id="fc-power-btn" title="Toggle Voice Changer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+        <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"/>
+      </svg>
+    </button>
+
+    <!-- Mid Section Group -->
+    <div class="fc-mid-group">
+      <!-- Microphone Mute Button -->
+      <button class="fc-btn fc-mic-btn" id="fc-mic-btn" title="Mute/Unmute Mic">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mic-on-icon" width="20" height="20">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+          <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 19v3M8 22h8"/>
+        </svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mic-off-icon hidden" width="20" height="20">
+          <line x1="1" y1="1" x2="23" y2="23"/>
+          <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V5a3 3 0 0 0-5.94-.6"/>
+          <path d="M17 11.5a7 7 0 0 1-1.38 4.19M12 19v3M8 22h8M19 10v1a6.93 6.93 0 0 1-.36 2.2"/>
+        </svg>
+      </button>
+
+      <!-- Divider -->
+      <div class="fc-divider"></div>
+
+      <!-- Hear Yourself Toggle -->
+      <button class="fc-btn fc-hear-btn" id="fc-hear-btn" title="Hear Yourself">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+          <path d="M3 18v-6a9 9 0 0 1 18 0v6M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+        </svg>
+      </button>
+
+      <!-- Dropdown settings trigger -->
+      <button class="fc-btn fc-settings-trigger" id="fc-settings-trigger" title="Voice Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+
+      <!-- Dropdown Volume Settings Panel -->
+      <div class="fc-settings-menu" id="fc-settings-menu" style="display:none;">
+        <div class="fc-settings-item">
+          <label class="fc-slider-label">Mic Volume</label>
+          <input type="range" id="fc-mic-vol-slider" min="0" max="2" step="0.05" value="1.0" class="fc-range-slider">
+        </div>
+        <div class="fc-settings-item">
+          <label class="fc-slider-label">Hear Yourself</label>
+          <input type="range" id="fc-hear-vol-slider" min="0" max="2" step="0.05" value="1.0" class="fc-range-slider">
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side Soundboard Play/Stop recently played button -->
+    <button class="fc-btn fc-sb-btn" id="fc-sb-btn" title="Play/Stop Recently Played Sound">
+      <div class="fc-sb-inner">
+        <!-- Soundwave preview graphic -->
+        <div class="fc-sb-wave">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <!-- Play / Stop indicator icon -->
+        <svg viewBox="0 0 24 24" fill="currentColor" class="fc-sb-play-icon" width="20" height="20">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        <svg viewBox="0 0 24 24" fill="currentColor" class="fc-sb-stop-icon hidden" width="20" height="20">
+          <rect x="4" y="4" width="16" height="16" rx="2"/>
+        </svg>
+      </div>
+    </button>
+  </div>
+
+  <!-- Custom context menu for Soundboard slots -->
+  <div class="custom-context-menu" id="sb-context-menu" style="display:none; position:fixed; z-index:10000;">
+    <button class="context-menu-item" id="context-rename">Rename</button>
+    <button class="context-menu-item" id="context-keybind">Set Keybind</button>
+    <button class="context-menu-item" id="context-clear-keybind">Clear Keybind</button>
+    <button class="context-menu-item" id="context-change-image">Change Image</button>
+    <div class="context-menu-separator"></div>
+    <button class="context-menu-item delete" id="context-delete">Delete</button>
+  </div>
+  <input type="file" id="sb-image-input" accept="image/*" style="display:none;">
 
   <script src="renderer.js"></script>
 </body>
