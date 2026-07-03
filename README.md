@@ -106,7 +106,7 @@
 </p>
 
 <p align="center">
-  <img alt="Soundboard — Upload and trigger audio clips" src="assets/screenshot_soundboard.png" width="100%"/>
+  <img width="1918" height="1029" alt="image" src="https://github.com/user-attachments/assets/6c739a62-3bd5-4742-9f2e-6491358cd076" />
   <br/><sub>🔊 <b>Soundboard</b> — Upload audio clips and trigger them with a single click</sub>
 </p>
 
