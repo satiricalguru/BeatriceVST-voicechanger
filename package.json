@@ -45,7 +45,8 @@
       "beatrice_paraphernalia_jvs/**/*",
       "beatrice_paraphernalia_official_1/**/*",
       "beatrice_paraphernalia_old_tts/**/*",
-      "beatrice_2.0.0-rc.2.vst3/**/*"
+      "beatrice_2.0.0-rc.2.vst3/**/*",
+      "custom_models/**/*"
     ],
     "files": [
       "main.js",
@@ -61,7 +62,8 @@
       "beatrice_paraphernalia_jvs/**/*",
       "beatrice_paraphernalia_official_1/**/*",
       "beatrice_paraphernalia_old_tts/**/*",
-      "beatrice_2.0.0-rc.2.vst3/**/*"
+      "beatrice_2.0.0-rc.2.vst3/**/*",
+      "custom_models/**/*"
     ],
     "extraResources": [
       {
