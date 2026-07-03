@@ -101,7 +101,7 @@
 ## 📸 Screenshots
 
 <p align="center">
-  <img alt="Voice Models — JVS Corpus (100 voices) with category filters" src="assets/screenshot_voice_models.png" width="100%"/>
+<img width="1919" height="1027" alt="image" src="https://github.com/user-attachments/assets/9881dca4-fd99-4626-ae7b-f2c15f6f37d1" />
   <br/><sub>🎤 <b>Voice Models</b> — Browse 100+ JVS voices with animated avatars and category filters</sub>
 </p>
 
