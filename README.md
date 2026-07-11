@@ -6,17 +6,17 @@
 
 # 🎙️ Project Beatrice V2
 
-### Real-Time AI Voice Changer for Windows
+### Real-Time AI Voice Changer for macOS
 
-[![Version](https://img.shields.io/badge/version-2.0.0-brightgreen?style=for-the-badge)](https://github.com/satiricalguru/BeatriceVST-voicechanger/releases/tag/v2.0.0)
-[![Windows](https://img.shields.io/badge/Windows-10%2F11%20(64--bit)-blue?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/satiricalguru/BeatriceVST-voicechanger/releases)
+[![Version](https://img.shields.io/badge/version-2.0.0-brightgreen?style=for-the-badge)](https://github.com/satiricalguru/Beatrice-voicechanger/releases/tag/v2.0.0)
+[![macOS](https://img.shields.io/badge/macOS-12%2B-black?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/satiricalguru/Beatrice-voicechanger/releases)
 [![Electron](https://img.shields.io/badge/Electron-30-47848F?style=for-the-badge&logo=electron&logoColor=white)](https://www.electronjs.org/)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-**Morph your voice in real-time** with AI-powered neural voice conversion — powered by the Beatrice 2.0.0 DSP engine, achieving sub-10ms latency across 112+ built-in voices. Optimized and wrapper-compiled specifically for Windows platforms.
+**Morph your voice in real-time** with AI-powered neural voice conversion — powered by the Beatrice 2.0.0 DSP engine, achieving sub-10ms latency across 112+ built-in voices.
 
-[📥 Download v2.0.0](https://github.com/satiricalguru/BeatriceVST-voicechanger/releases/tag/v2.0.0) · [🍎 macOS Version](https://github.com/satiricalguru/Beatrice-voicechanger.git) · [🐛 Report Bug](https://github.com/satiricalguru/BeatriceVST-voicechanger/issues)
+[📥 Download v2.0.0](https://github.com/satiricalguru/Beatrice-voicechanger/releases/tag/v2.0.0) · [🪟 Windows Version](https://github.com/satiricalguru/BeatriceVST-voicechanger.git) · [🐛 Report Bug](https://github.com/satiricalguru/Beatrice-voicechanger/issues)
 
 </div>
 
@@ -24,13 +24,13 @@
 
 ## ✨ What's New in v2.0.0
 
-| 🔧 Fix / Feature | Description |
-|---|---|
-| 🗂️ **Writable Path Migration** | Custom models & soundboard audio now stored in OS user data — fully compatible with Windows app builds |
+| 🔧 Fix | Description |
+|--------|-------------|
+| 🗂️ **Writable Path Migration** | Custom models & soundboard audio now stored in OS user data — fully compatible with packaged `.app` bundles |
 | 🖼️ **Image Loading Fixed** | Speaker portraits now resolve correctly via `file://` URLs in both dev and production environments |
 | 📦 **50MB Smaller Installer** | Eliminated duplicate model packaging; assets live exclusively in `app.asar.unpacked` |
-| 🧠 **Custom Model Loading Fix** | Python backend crash on custom model load is now fully resolved |
-| 🔄 **Automatic Model Migration** | Legacy `custom_models/` in project root auto-migrated to `userData` folder on startup |
+| 🧠 **Custom Model Loading Fix** | Python backend `UnboundLocalError` crash on custom model load is now resolved |
+| 🔄 **Automatic Model Migration** | Legacy `custom_models/` in project root auto-migrated to `userData` on startup |
 
 ---
 
@@ -69,15 +69,14 @@
 - Independent **Input**, **Output**, and **Monitor** device selection
 - PortAudio-backed device enumeration
 - Real-time **dB input/output level meters**
-- Works seamlessly with virtual audio devices (VB-Cable)
+- Works seamlessly with virtual audio devices (BlackHole, VB-Cable)
 
 </td>
 <td>
 
-### 🎨 Themes & Controls
+### 🎨 Themes & Languages
 - **6 handcrafted themes** — Obsidian, Midnight, Teal, Amber, Rose, Cyberpunk
 - **Light & Dark mode** per theme
-- Custom custom **Windows titlebar window controls** (Minimize, Maximize, Close)
 - **3 languages** — English, Japanese, Chinese
 - Beautiful animated speaker selection grid
 
@@ -101,22 +100,22 @@
 ## 📸 Screenshots
 
 <p align="center">
-<img width="1919" height="1027" alt="image" src="https://github.com/user-attachments/assets/9881dca4-fd99-4626-ae7b-f2c15f6f37d1" />
+  <img alt="Voice Models — JVS Corpus (100 voices) with category filters" src="assets/screenshot_voice_models.png" width="100%"/>
   <br/><sub>🎤 <b>Voice Models</b> — Browse 100+ JVS voices with animated avatars and category filters</sub>
 </p>
 
 <p align="center">
-  <img width="1918" height="1029" alt="image" src="https://github.com/user-attachments/assets/6c739a62-3bd5-4742-9f2e-6491358cd076" />
+  <img alt="Soundboard — Upload and trigger audio clips" src="assets/screenshot_soundboard.png" width="100%"/>
   <br/><sub>🔊 <b>Soundboard</b> — Upload audio clips and trigger them with a single click</sub>
 </p>
 
 <p align="center">
- <img width="1919" height="1032" alt="image" src="https://github.com/user-attachments/assets/8d2268e8-5ef6-411c-9140-a1998f450953" />
-  <br/><sub>📚 <b>Library</b> — 100+ curated sound presets with multilingual UI support</sub>
+  <img alt="Library — Featured presets and Wikimedia sound effects (Japanese UI)" src="assets/screenshot_library.png" width="100%"/>
+  <br/><sub>📚 <b>Library</b> — 100+ curated sound presets with multilingual UI support (Japanese shown)</sub>
 </p>
 
 <p align="center">
-  <img width="1919" height="1025" alt="image" src="https://github.com/user-attachments/assets/efb668c8-12d3-421b-b3fb-47f4d4e360cd" />
+ <img width="2904" height="1606" alt="image" src="https://github.com/user-attachments/assets/951329b7-41be-4ea1-8d3a-66ef4b38b330" />
   <br/><sub>⚙️ <b>Settings</b> — 6 handcrafted themes, light/dark mode, and 3 languages (Chinese shown)</sub>
 </p>
 
@@ -124,21 +123,26 @@
 
 ## 📥 Installation
 
-### Option A — Download the Setup Installer (Recommended)
+### Option A — Download the DMG (Recommended)
 
-Download the pre-built installer for your machine from the [Releases page](https://github.com/satiricalguru/BeatriceVST-voicechanger/releases/tag/v2.0.0):
+Download the pre-built installer for your Mac from the [Releases page](https://github.com/satiricalguru/Beatrice-voicechanger/releases/tag/v2.0.0):
 
-* `Beatrice.Voice.Changer.Setup.2.0.0.exe` (Standalone Windows Installer)
+| Architecture | File |
+|---|---|
+| 🍎 Apple Silicon (M1/M2/M3/M4) | `Beatrice.Voice.Changer-2.0.0-arm64.dmg` |
+| 💻 Intel Mac | `Beatrice.Voice.Changer-2.0.0.dmg` |
+
+> **First Launch on macOS:** If macOS blocks the app, go to **System Settings → Privacy & Security** and click **Open Anyway**.
 
 ### Option B — Build from Source
 
-```powershell
+```bash
 # 1. Clone the repository
-git clone https://github.com/satiricalguru/BeatriceVST-voicechanger.git
-cd BeatriceVST-voicechanger
+git clone https://github.com/satiricalguru/Beatrice-voicechanger.git
+cd Beatrice-voicechanger
 
 # 2. Install Python audio dependencies
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 
 # 3. Install Node dependencies
 npm install
@@ -146,7 +150,7 @@ npm install
 # 4. Launch in development mode
 npm run dev
 
-# 5. (Optional) Build a production installer exe
+# 5. (Optional) Build a production .dmg installer
 npm run dist
 ```
 
@@ -160,15 +164,15 @@ To route your morphed voice into apps like **Discord**, **Zoom**, or **OBS**, yo
 
 | Platform | Tool | Download |
 |----------|------|----------|
-| 🪟 Windows | VB-Cable | [vb-audio.com/Cable](https://vb-audio.com/Cable/) |
 | 🍎 macOS | BlackHole 2ch | [existential.audio/blackhole](https://existential.audio/blackhole/) |
+| 🪟 Windows | VB-Cable | [vb-audio.com/Cable](https://vb-audio.com/Cable/) |
 
 **Step-by-step:**
 
-1. Install your virtual audio driver (e.g., VB-Cable)
+1. Install your virtual audio driver (e.g., BlackHole 2ch)
 2. Open **Project Beatrice** and set your physical mic as the **Input Microphone**
-3. Set the **Output Device** to the virtual audio driver (e.g., `CABLE Input`)
-4. In Discord/Zoom/OBS, set the **Input Device** to `CABLE Output`
+3. Set the **Output Device** to the virtual audio driver (e.g., `BlackHole 2ch`)
+4. In Discord/Zoom/OBS, set the **Input** to `BlackHole 2ch`
 5. Toggle the **power button** to go **LIVE** 🟢
 6. Enable **Hear Yourself** and select your headphones to monitor in real-time
 
@@ -239,7 +243,7 @@ my_model/
                        │ ctypes CDLL
                        ▼
 ┌──────────────────────────────────────────────────┐
-│       Beatrice 2.0.0-rc.2 VST3 Library           │
+│        Beatrice 2.0.0-rc.2 VST3 Library          │
 │        + beatrice_paraphernalia_*/               │
 │          (model weights & speaker embeddings)    │
 └──────────────────────────────────────────────────┘
@@ -250,7 +254,7 @@ my_model/
 ## 📁 Project Structure
 
 ```
-BeatriceVST-voicechanger/
+Beatrice-voicechanger/
 ├── main.js                              # Electron main process + IPC handlers
 ├── renderer.js                          # Frontend logic (voices, soundboard, settings)
 ├── index.html                           # UI layout
@@ -275,14 +279,14 @@ BeatriceVST-voicechanger/
 
 | Dependency | Version | Purpose |
 |---|---|---|
-| **Windows** | 10 / 11 (64-bit) | Operating System |
+| **macOS** | 12 Monterey+ | Apple Silicon or Intel |
 | **Node.js** | 18+ | Electron shell |
 | **Python** | 3.9+ | Audio backend |
 | `sounddevice` | 0.4.6+ | PortAudio I/O |
 | `numpy` | 1.24+ | DSP math |
 | `soundfile` | 0.12+ | Audio file decoding |
 
-> **Note:** The Beatrice VST3 library is a **Windows-only** `.dll` wrapper included in the project. For macOS support, see the [Beatrice-voicechanger](https://github.com/satiricalguru/Beatrice-voicechanger) repository.
+> **Note:** The Beatrice VST3 library is a **macOS-only** signed binary. For Windows support, see the [BeatriceVST-voicechanger](https://github.com/satiricalguru/BeatriceVST-voicechanger) repository.
 
 ---
 
@@ -319,7 +323,7 @@ The Python backend exposes a local REST API on `http://127.0.0.1:5005`:
 
 The voice changer UI and Python backend are MIT-licensed. The Beatrice DSP engine is licensed separately under the [prj-beatrice project](https://github.com/prj-beatrice/beatrice-vst).
 
-> ⚠️ **JVS Corpus:** Speaker data is licensed for **non-commercial use only**. See `LICENSE` and `contributors.txt` for full details.
+> ⚠️ **JVS Corpus:** Speaker data is licensed for **non-commercial use only**. See `LICENSE` and `Contributors.txt` for full details.
 
 ---
 

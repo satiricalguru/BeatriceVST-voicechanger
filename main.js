@@ -59,7 +59,7 @@ function startBackend() {
   }
 
   // Migrate legacy custom models from project root to userData during development/startup
-  const legacyCustomModelsPath = path.join(__dirname, 'custom_models');
+  const legacyCustomModelsPath = path.join(appDir, 'custom_models');
   if (fs.existsSync(legacyCustomModelsPath) && legacyCustomModelsPath !== customModelsPath) {
     try {
       const folders = fs.readdirSync(legacyCustomModelsPath);
@@ -166,7 +166,7 @@ app.on('will-quit', () => {
   globalShortcut.unregisterAll();
   if (pythonProcess) {
     console.log('[Beatrice] Terminating Python backend…');
-    pythonProcess.kill('SIGTERM');
+    pythonProcess.kill('SIGKILL');
     pythonProcess = null;
   }
 });

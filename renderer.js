@@ -138,7 +138,7 @@ const AVAILABLE_MODELS = {
     toml: "beatrice_paraphernalia_jvs.toml"
   },
   official_1: {
-    name: "Official Model (4 Voices)",
+    name: "Official Model (3 Voices)",
     folder: "beatrice_paraphernalia_official_1",
     toml: "beatrice_paraphernalia_official_1.toml"
   },
@@ -1873,7 +1873,7 @@ function loadSpeakerData() {
           speaker.name = 'Tsukuyomichan';
         } else if (speaker.name === 'つくよみちゃん (コーパス)') {
           speaker.name = 'Fukuyomichan';
-          speaker.portrait_path = 'tsukuyomichan.png';
+          speaker.portrait_path = 'fukuyomichan.png';
         } else if (speaker.name === '刻鳴時雨') {
           speaker.name = 'Tokinashigure';
         } else if (speaker.name === 'OLUNE') {

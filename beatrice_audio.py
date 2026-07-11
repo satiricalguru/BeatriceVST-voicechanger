@@ -787,7 +787,7 @@ def update_target_speaker(speaker_id):
             lib.Beatrice20rc0_SetKeyValueSpeakerEmbedding(
                 embedding_setter, block, embedding_context, waveform_context
             )
-        print(f"[+] Successfully switched target speaker to index: {speaker_id}")
+        print(f"[+] Successfully switched target speaker to index: {speaker_id} (codebook[0]={codebook_ptr[0]:.4f})")
     except Exception as e:
         print("Error in update_target_speaker:", e)
 
